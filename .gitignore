@@ -1,0 +1,8 @@
+/target
+__pycache__
+*.pyc
+*.so
+*.egg-info
+reference/
+assets/
+.claude/
