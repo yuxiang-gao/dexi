@@ -268,6 +268,11 @@ impl RobotWrapper {
         link_id: usize,
     ) -> DMatrix<f64> {
         self.compute_forward_kinematics(qpos);
+        self.compute_single_link_position_jacobian_cached(link_id)
+    }
+
+    /// Compute the world-frame translational Jacobian using already cached FK.
+    pub fn compute_single_link_position_jacobian_cached(&self, link_id: usize) -> DMatrix<f64> {
         let ndof = self.dof();
         let mut jac = DMatrix::zeros(3, ndof);
         let link_pose = self.link_poses[link_id];

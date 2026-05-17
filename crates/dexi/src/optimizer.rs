@@ -280,7 +280,7 @@ impl Optimizer for PositionOptimizer {
                 let pose = robot.get_link_pose(link_idx);
                 let body_pos = [pose[(0, 3)], pose[(1, 3)], pose[(2, 3)]];
                 let jac_target = if maybe_grad.is_some() {
-                    let jac_full = robot.compute_single_link_local_jacobian(&qpos, link_idx);
+                    let jac_full = robot.compute_single_link_position_jacobian_cached(link_idx);
                     Some(target_jacobian(
                         &jac_full,
                         opt_dof,
@@ -505,7 +505,7 @@ impl Optimizer for VectorOptimizer {
             }
             if let Some(g) = maybe_grad.as_deref_mut() {
                 for (ci, &link_idx) in computed_link_indices.iter().enumerate() {
-                    let jac_full = robot.compute_single_link_local_jacobian(&qpos, link_idx);
+                    let jac_full = robot.compute_single_link_position_jacobian_cached(link_idx);
                     let jac_target =
                         target_jacobian(&jac_full, opt_dof, &idx_target, adaptor.as_ref());
                     let mut link_grad = [0.0_f64; 3];
@@ -890,7 +890,7 @@ impl Optimizer for DexPilotOptimizer {
             }
             if let Some(g) = maybe_grad.as_deref_mut() {
                 for (ci, &link_idx) in computed_link_indices.iter().enumerate() {
-                    let jac_full = robot.compute_single_link_local_jacobian(&qpos, link_idx);
+                    let jac_full = robot.compute_single_link_position_jacobian_cached(link_idx);
                     let jac_target =
                         target_jacobian(&jac_full, opt_dof, &idx_target, adaptor.as_ref());
                     let mut link_grad = [0.0_f64; 3];
