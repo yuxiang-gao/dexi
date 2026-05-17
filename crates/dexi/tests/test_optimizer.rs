@@ -1,6 +1,7 @@
 //! Test: optimizer smoke tests for all supported hand config families.
 
 use dexi::{RetargetingConfig, RobotWrapper, SeqRetargeting};
+use nalgebra::DMatrix;
 use std::path::Path;
 
 fn workspace_root() -> &'static Path {
@@ -430,4 +431,133 @@ fn test_jacobian_computation() {
     let pos_jac = jac.rows(0, 3);
     let norm = pos_jac.iter().map(|x| x.powi(2)).sum::<f64>().sqrt();
     assert!(norm > 1e-6, "Jacobian should not be all zeros");
+
+    let analytic = robot.compute_single_link_position_jacobian(&qpos, tip_idx);
+    assert_eq!(analytic.nrows(), 3);
+    assert_eq!(analytic.ncols(), ndof);
+    assert_matrix_close(&analytic, &jac.rows(0, 3).into_owned(), 1e-5);
+}
+
+fn assert_matrix_close(left: &DMatrix<f64>, right: &DMatrix<f64>, tolerance: f64) {
+    assert_eq!(left.shape(), right.shape());
+    let max_abs = left
+        .iter()
+        .zip(right.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0, f64::max);
+    assert!(
+        max_abs <= tolerance,
+        "matrix mismatch: max_abs={} tolerance={}",
+        max_abs,
+        tolerance
+    );
+}
+
+#[test]
+fn test_pinocchio_joint_order_supported_robots() {
+    let cases: [(&str, &[&str]); 6] = [
+        (
+            "allegro_hand/allegro_hand_left.urdf",
+            &[
+                "joint_0.0",
+                "joint_1.0",
+                "joint_2.0",
+                "joint_3.0",
+                "joint_12.0",
+                "joint_13.0",
+                "joint_14.0",
+                "joint_15.0",
+                "joint_4.0",
+                "joint_5.0",
+                "joint_6.0",
+                "joint_7.0",
+                "joint_8.0",
+                "joint_9.0",
+                "joint_10.0",
+                "joint_11.0",
+            ],
+        ),
+        (
+            "ability_hand/ability_hand_left.urdf",
+            &[
+                "index_q1",
+                "index_q2",
+                "middle_q1",
+                "middle_q2",
+                "pinky_q1",
+                "pinky_q2",
+                "ring_q1",
+                "ring_q2",
+                "thumb_q1",
+                "thumb_q2",
+            ],
+        ),
+        (
+            "inspire_hand/inspire_hand_left.urdf",
+            &[
+                "index_proximal_joint",
+                "index_intermediate_joint",
+                "middle_proximal_joint",
+                "middle_intermediate_joint",
+                "pinky_proximal_joint",
+                "pinky_intermediate_joint",
+                "ring_proximal_joint",
+                "ring_intermediate_joint",
+                "thumb_proximal_yaw_joint",
+                "thumb_proximal_pitch_joint",
+                "thumb_intermediate_joint",
+                "thumb_distal_joint",
+            ],
+        ),
+        (
+            "leap_hand/leap_hand_left.urdf",
+            &[
+                "1", "0", "2", "3", "12", "13", "14", "15", "5", "4", "6", "7", "9", "8", "10",
+                "11",
+            ],
+        ),
+        (
+            "shadow_hand/shadow_hand_left.urdf",
+            &[
+                "WRJ2", "WRJ1", "FFJ4", "FFJ3", "FFJ2", "FFJ1", "LFJ5", "LFJ4", "LFJ3", "LFJ2",
+                "LFJ1", "MFJ4", "MFJ3", "MFJ2", "MFJ1", "RFJ4", "RFJ3", "RFJ2", "RFJ1", "THJ5",
+                "THJ4", "THJ3", "THJ2", "THJ1",
+            ],
+        ),
+        (
+            "schunk_hand/schunk_svh_hand_left.urdf",
+            &[
+                "left_hand_Thumb_Opposition",
+                "left_hand_Thumb_Flexion",
+                "left_hand_j3",
+                "left_hand_j4",
+                "left_hand_index_spread",
+                "left_hand_Index_Finger_Proximal",
+                "left_hand_Index_Finger_Distal",
+                "left_hand_j14",
+                "left_hand_j5",
+                "left_hand_Finger_Spread",
+                "left_hand_Pinky",
+                "left_hand_j13",
+                "left_hand_j17",
+                "left_hand_ring_spread",
+                "left_hand_Ring_Finger",
+                "left_hand_j12",
+                "left_hand_j16",
+                "left_hand_Middle_Finger_Proximal",
+                "left_hand_Middle_Finger_Distal",
+                "left_hand_j15",
+            ],
+        ),
+    ];
+
+    for (urdf, expected) in cases {
+        let robot =
+            RobotWrapper::from_urdf_path(robots_dir().join(urdf).to_str().unwrap()).unwrap();
+        assert_eq!(
+            robot.dof_joint_names(),
+            expected,
+            "joint order mismatch for {urdf}"
+        );
+    }
 }

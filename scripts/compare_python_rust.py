@@ -26,8 +26,10 @@ import math
 import os
 import sys
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
+from statistics import mean, median
 from typing import Any
 
 import numpy as np
@@ -51,8 +53,21 @@ class ComparisonRow:
     max_abs_error: float
     mean_abs_error: float
     rms_error: float
+    pose_max_error: float
+    pose_mean_error: float
     python_norm: float
     rust_norm: float
+    python_build_ms: float
+    rust_build_ms: float
+    python_retarget_ms: float
+    rust_retarget_ms: float
+    rust_speedup: float
+    perf_repeats: int
+    render_links: list[str]
+    python_points: dict[str, list[float]]
+    rust_points: dict[str, list[float]]
+    python_qpos_preview: list[float]
+    rust_qpos_preview: list[float]
     status: str
     message: str = ""
 
@@ -176,6 +191,68 @@ def deterministic_feasible_reference(
     return ((task - origin) / scaling).astype(np.float32)
 
 
+def render_link_names(cfg: dict[str, Any], py_retargeting: Any) -> list[str]:
+    """Links to render for a qualitative output-pose overlay."""
+
+    rtype = str(cfg["type"]).lower()
+    if rtype == "position":
+        names = list(cfg["target_link_names"])
+    elif rtype == "vector":
+        names = list(cfg["target_origin_link_names"]) + list(cfg["target_task_link_names"])
+    elif rtype == "dexpilot":
+        optimizer = py_retargeting.optimizer
+        names = list(optimizer.origin_link_names) + list(optimizer.task_link_names)
+    else:
+        raise ValueError(f"Unknown retargeting type: {cfg['type']}")
+
+    deduped: list[str] = []
+    for name in names:
+        if name not in deduped:
+            deduped.append(name)
+    return deduped
+
+
+def link_points(py_retargeting: Any, qpos: np.ndarray, link_names: list[str]) -> dict[str, list[float]]:
+    """Render any implementation's qpos through the Python reference FK."""
+
+    robot = py_retargeting.optimizer.robot
+    robot.compute_forward_kinematics(np.asarray(qpos, dtype=np.float64))
+    points: dict[str, list[float]] = {}
+    for name in link_names:
+        pose = robot.get_link_pose(robot.get_link_index(name))
+        points[name] = [float(pose[0, 3]), float(pose[1, 3]), float(pose[2, 3])]
+    return points
+
+
+def point_errors(
+    python_points: dict[str, list[float]], rust_points: dict[str, list[float]]
+) -> tuple[float, float]:
+    distances = []
+    for name, py_point in python_points.items():
+        rust_point = rust_points.get(name)
+        if rust_point is None:
+            continue
+        delta = np.asarray(py_point, dtype=np.float64) - np.asarray(rust_point, dtype=np.float64)
+        distances.append(float(np.linalg.norm(delta)))
+    if not distances:
+        return 0.0, 0.0
+    return float(max(distances)), float(mean(distances))
+
+
+def median_retarget_time_ms(
+    repeats: int,
+    reset: Any,
+    retarget: Any,
+) -> float:
+    elapsed = []
+    for _ in range(max(1, repeats)):
+        reset()
+        started = time.perf_counter()
+        retarget()
+        elapsed.append((time.perf_counter() - started) * 1000.0)
+    return float(median(elapsed))
+
+
 def materialize_absolute_config(path: Path, tmp_dir: Path) -> tuple[Path, dict[str, Any]]:
     data = yaml.safe_load(path.read_text())
     cfg = data["retargeting"]
@@ -194,6 +271,7 @@ def compare_one(
     tmp_dir: Path,
     seed: int,
     input_mode: str,
+    perf_repeats: int,
     py_config_cls: Any,
     dexi_py: Any,
 ) -> ComparisonRow:
@@ -202,10 +280,15 @@ def compare_one(
     rtype = str(cfg["type"]).lower()
 
     try:
+        started = time.perf_counter()
         py_config = py_config_cls.load_from_file(runtime_path)
         py_retargeting = py_config.build()
+        python_build_ms = (time.perf_counter() - started) * 1000.0
+
+        started = time.perf_counter()
         rust_config = dexi_py.RetargetingConfig.from_file(str(runtime_path))
         rust_retargeting = rust_config.build()
+        rust_build_ms = (time.perf_counter() - started) * 1000.0
 
         py_fixed_dof = len(py_retargeting.optimizer.idx_pin2fixed)
         rust_fixed_dof = int(rust_retargeting.fixed_dof)
@@ -220,10 +303,14 @@ def compare_one(
         else:
             ref_value = deterministic_reference(rng, cfg)
         fixed_qpos = np.zeros(py_fixed_dof, dtype=np.float32)
+        ref_flat = ref_value.reshape(-1).tolist()
+        fixed_list = fixed_qpos.tolist()
 
+        py_retargeting.reset()
         py_qpos = np.asarray(py_retargeting.retarget(ref_value, fixed_qpos), dtype=np.float64)
+        rust_retargeting.reset()
         rust_qpos = np.asarray(
-            rust_retargeting.retarget(ref_value.reshape(-1).tolist(), fixed_qpos.tolist()),
+            rust_retargeting.retarget(ref_flat, fixed_list),
             dtype=np.float64,
         )
 
@@ -233,6 +320,23 @@ def compare_one(
             raise ValueError("non-finite qpos returned")
 
         abs_err = np.abs(py_qpos - rust_qpos)
+        render_links = render_link_names(cfg, py_retargeting)
+        python_points = link_points(py_retargeting, py_qpos, render_links)
+        rust_points = link_points(py_retargeting, rust_qpos, render_links)
+        pose_max_error, pose_mean_error = point_errors(python_points, rust_points)
+
+        python_retarget_ms = median_retarget_time_ms(
+            perf_repeats,
+            py_retargeting.reset,
+            lambda: py_retargeting.retarget(ref_value, fixed_qpos),
+        )
+        rust_retarget_ms = median_retarget_time_ms(
+            perf_repeats,
+            rust_retargeting.reset,
+            lambda: rust_retargeting.retarget(ref_flat, fixed_list),
+        )
+        rust_speedup = python_retarget_ms / rust_retarget_ms if rust_retarget_ms > 0 else float("inf")
+
         return ComparisonRow(
             config=rel,
             hand=hand_name(path),
@@ -242,8 +346,21 @@ def compare_one(
             max_abs_error=float(abs_err.max(initial=0.0)),
             mean_abs_error=float(abs_err.mean() if abs_err.size else 0.0),
             rms_error=float(math.sqrt(float(np.mean(abs_err * abs_err))) if abs_err.size else 0.0),
+            pose_max_error=pose_max_error,
+            pose_mean_error=pose_mean_error,
             python_norm=float(np.linalg.norm(py_qpos)),
             rust_norm=float(np.linalg.norm(rust_qpos)),
+            python_build_ms=float(python_build_ms),
+            rust_build_ms=float(rust_build_ms),
+            python_retarget_ms=python_retarget_ms,
+            rust_retarget_ms=rust_retarget_ms,
+            rust_speedup=float(rust_speedup),
+            perf_repeats=max(1, perf_repeats),
+            render_links=render_links,
+            python_points=python_points,
+            rust_points=rust_points,
+            python_qpos_preview=[float(v) for v in py_qpos[: min(12, py_qpos.size)]],
+            rust_qpos_preview=[float(v) for v in rust_qpos[: min(12, rust_qpos.size)]],
             status="ok",
         )
     except Exception as exc:  # noqa: BLE001 - report every config independently
@@ -256,8 +373,21 @@ def compare_one(
             max_abs_error=float("nan"),
             mean_abs_error=float("nan"),
             rms_error=float("nan"),
+            pose_max_error=float("nan"),
+            pose_mean_error=float("nan"),
             python_norm=float("nan"),
             rust_norm=float("nan"),
+            python_build_ms=float("nan"),
+            rust_build_ms=float("nan"),
+            python_retarget_ms=float("nan"),
+            rust_retarget_ms=float("nan"),
+            rust_speedup=float("nan"),
+            perf_repeats=max(1, perf_repeats),
+            render_links=[],
+            python_points={},
+            rust_points={},
+            python_qpos_preview=[],
+            rust_qpos_preview=[],
             status="error",
             message=str(exc),
         )
@@ -292,6 +422,12 @@ def main() -> int:
         default="feasible",
         help="Use reachable FK-derived probes by default; random keeps the older arbitrary cartesian probe.",
     )
+    parser.add_argument(
+        "--perf-repeats",
+        type=int,
+        default=3,
+        help="Retarget timing repeats per config. Reports median call time in milliseconds.",
+    )
     parser.add_argument("--json", type=Path, default=None, help="Optional JSON report path")
     parser.add_argument("--csv", type=Path, default=None, help="Optional CSV report path")
     parser.add_argument("configs", nargs="*", type=Path, help="Optional specific config paths")
@@ -302,18 +438,29 @@ def main() -> int:
     py_config_cls.set_default_urdf_dir(REFERENCE_URDF_DIR)
 
     paths = args.configs or config_paths()
-    print("config,type,hand,dof,fixed_dof,mean_abs,max_abs,rms,status")
+    print(
+        "config,type,hand,dof,fixed_dof,mean_abs,max_abs,rms,pose_mean,pose_max,"
+        "python_ms,rust_ms,speedup,status"
+    )
     with tempfile.TemporaryDirectory(prefix="dexi-compare-configs-") as tmp:
         tmp_dir = Path(tmp)
         rows = []
         for path in paths:
             row = compare_one(
-                path.resolve(), tmp_dir, args.seed, args.input_mode, py_config_cls, dexi_py
+                path.resolve(),
+                tmp_dir,
+                args.seed,
+                args.input_mode,
+                args.perf_repeats,
+                py_config_cls,
+                dexi_py,
             )
             rows.append(row)
             print(
                 f"{row.config},{row.retargeting_type},{row.hand},{row.dof},{row.fixed_dof},"
                 f"{row.mean_abs_error:.6g},{row.max_abs_error:.6g},{row.rms_error:.6g},"
+                f"{row.pose_mean_error:.6g},{row.pose_max_error:.6g},"
+                f"{row.python_retarget_ms:.6g},{row.rust_retarget_ms:.6g},{row.rust_speedup:.6g},"
                 f"{row.status}{(': ' + row.message) if row.message else ''}",
                 flush=True,
             )
@@ -332,7 +479,8 @@ def main() -> int:
             f"{len(ok_rows)}/{len(rows)} configs compared; "
             f"mean_abs max={max(r.mean_abs_error for r in ok_rows):.6g}, "
             f"max_abs max={max(r.max_abs_error for r in ok_rows):.6g}, "
-            f"threshold_exceeded={len(over_threshold)}"
+            f"threshold_exceeded={len(over_threshold)}, "
+            f"median_speedup={median(r.rust_speedup for r in ok_rows):.3g}x"
         )
     if error_rows:
         print(f"Errors: {len(error_rows)}")

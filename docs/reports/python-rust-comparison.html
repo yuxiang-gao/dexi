@@ -15,9 +15,12 @@
     .card { background:white; border:1px solid var(--line); border-radius:18px; padding:18px; box-shadow:0 8px 30px rgba(15,23,42,.04); }
     .label { color:var(--muted); font-size:.82rem; text-transform:uppercase; letter-spacing:.08em; }
     .value { font-size:2rem; font-weight:800; margin-top:6px; }
-    .callout { border-left: 5px solid #dc2626; background:#fff1f2; padding: 16px 20px; border-radius: 14px; color:#7f1d1d; }
+    .callout { border-left: 5px solid #16a34a; background:#f0fdf4; padding: 16px 20px; border-radius: 14px; color:#14532d; }
+    .callout.drift { border-left-color:#dc2626; background:#fff1f2; color:#7f1d1d; }
     .grid { display:grid; grid-template-columns: 1fr; gap: 18px; }
     .viz { width: 100%; height: auto; display:block; border-radius:18px; box-shadow:0 12px 36px rgba(15,23,42,.08); }
+    .poses { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .pose { width:100%; height:auto; border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 24px rgba(15,23,42,.06); }
     table { width: 100%; border-collapse: collapse; background:white; border:1px solid var(--line); border-radius: 16px; overflow:hidden; font-size:.92rem; }
     th, td { padding: 11px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
     th { background:#f1f5f9; color:#334155; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; }
@@ -28,7 +31,7 @@
     .drift { background:#fee2e2; color:#991b1b; }
     .error { background:#e5e7eb; color:#111827; }
     footer { margin-top: 42px; color:var(--muted); font-size:.9rem; }
-    @media (max-width: 820px) { .cards { grid-template-columns: repeat(2, minmax(0,1fr)); } table { font-size:.8rem; } }
+    @media (max-width: 820px) { .cards { grid-template-columns: repeat(2, minmax(0,1fr)); } .poses { grid-template-columns: 1fr; } table { font-size:.8rem; } }
   </style>
 </head>
 <body>
@@ -41,7 +44,14 @@
     <div class="card"><div class="label">Max mean abs</div><div class="value">0.0184</div></div>
     <div class="card"><div class="label">Max abs</div><div class="value">0.0552</div></div>
   </div>
-  <div class="callout"><strong>Interpretation:</strong> API and coverage parity are in place, and all 39 configs complete without runtime failure. Numerical parity is not yet close: 0 configs exceed the reporting thresholds of mean ≤ 0.05 and max ≤ 0.5.</div>
+  <div class="callout pass"><strong>Interpretation:</strong> All 39 successful configs are within the thresholds of mean ≤ 0.05 and max ≤ 0.5. Median Rust speedup is 0.004×.</div>
+
+  <div class="cards">
+    <div class="card"><div class="label">Worst pose mean</div><div class="value">0.0021</div></div>
+    <div class="card"><div class="label">Worst pose max</div><div class="value">0.0028</div></div>
+    <div class="card"><div class="label">Python median</div><div class="value">1.3948 ms</div></div>
+    <div class="card"><div class="label">Rust median</div><div class="value">2.7669e+02 ms</div></div>
+  </div>
 
   <h2>Visual summary</h2>
   <div class="grid">
@@ -64,6 +74,32 @@
 <rect x="150" y="220" width="700.00" height="28" rx="14" fill="#0891b2"/>
 <text x="860.00" y="240" fill="#f8fafc" font-size="14">0.0184</text>
 <text x="775" y="240" fill="#94a3b8" font-size="13">n=13</text>
+</svg>
+    <svg class="viz" viewBox="0 0 920 340" role="img" aria-label="Retarget performance by type">
+<rect width="100%" height="100%" rx="18" fill="#ecfeff"/>
+<text x="28" y="38" fill="#164e63" font-size="22" font-weight="700">Median retarget performance by type</text>
+<text x="28" y="64" fill="#155e75" font-size="13">Bars show median single-call retarget time. Lower is faster; speedup is Python / Rust.</text>
+<text x="28" y="124" fill="#0e7490" font-size="15" font-weight="700">dexpilot</text>
+<rect x="150" y="102" width="680" height="20" rx="10" fill="#cffafe"/>
+<rect x="150" y="102" width="2.00" height="20" rx="10" fill="#2563eb"/>
+<text x="162.00" y="117" fill="#1e3a8a" font-size="12">Python 1.4829 ms</text>
+<rect x="150" y="130" width="680" height="20" rx="10" fill="#ccfbf1"/>
+<rect x="150" y="130" width="199.09" height="20" rx="10" fill="#16a34a"/>
+<text x="359.09" y="145" fill="#14532d" font-size="12">Rust 2.6093e+02 ms · 0.01×</text>
+<text x="28" y="196" fill="#0e7490" font-size="15" font-weight="700">position</text>
+<rect x="150" y="174" width="680" height="20" rx="10" fill="#cffafe"/>
+<rect x="150" y="174" width="2.00" height="20" rx="10" fill="#2563eb"/>
+<text x="162.00" y="189" fill="#1e3a8a" font-size="12">Python 1.4426 ms</text>
+<rect x="150" y="202" width="680" height="20" rx="10" fill="#ccfbf1"/>
+<rect x="150" y="202" width="680.00" height="20" rx="10" fill="#16a34a"/>
+<text x="840.00" y="217" fill="#14532d" font-size="12">Rust 8.9122e+02 ms · 0×</text>
+<text x="28" y="268" fill="#0e7490" font-size="15" font-weight="700">vector</text>
+<rect x="150" y="246" width="680" height="20" rx="10" fill="#cffafe"/>
+<rect x="150" y="246" width="2.00" height="20" rx="10" fill="#2563eb"/>
+<text x="162.00" y="261" fill="#1e3a8a" font-size="12">Python 1.2446 ms</text>
+<rect x="150" y="274" width="680" height="20" rx="10" fill="#ccfbf1"/>
+<rect x="150" y="274" width="178.98" height="20" rx="10" fill="#16a34a"/>
+<text x="338.98" y="289" fill="#14532d" font-size="12">Rust 2.3457e+02 ms · 0.01×</text>
 </svg>
     <svg class="viz" viewBox="0 0 920 178" role="img" aria-label="Configuration drift heatmap">
 <rect width="100%" height="100%" rx="18" fill="#fff7ed"/>
@@ -121,7 +157,7 @@
   </defs>
   <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>
   <text x="28" y="40" fill="#0f172a" font-size="23" font-weight="800">Qualitative architecture comparison</text>
-  <text x="28" y="68" fill="#475569" font-size="13">Both stacks execute all configs end-to-end; numerical differences trace mainly to kinematics and solver choices.</text>
+  <text x="28" y="68" fill="#475569" font-size="13">Both stacks execute all configs end-to-end with matching numeric thresholds on feasible FK-derived probes.</text>
   <g transform="translate(36 112)">
     <rect x="0" y="0" width="360" height="190" rx="18" fill="#dbeafe" stroke="#60a5fa"/>
     <text x="22" y="34" fill="#1e3a8a" font-size="20" font-weight="700">Python reference</text>
@@ -134,71 +170,250 @@
     <rect x="0" y="0" width="360" height="190" rx="18" fill="#dcfce7" stroke="#4ade80"/>
     <text x="22" y="34" fill="#14532d" font-size="20" font-weight="700">Rust implementation</text>
     <text x="22" y="68" fill="#166534" font-size="14">Pure Rust URDF parser + FK</text>
-    <text x="22" y="96" fill="#166534" font-size="14">Finite-difference Jacobians</text>
-    <text x="22" y="124" fill="#166534" font-size="14">Projected-gradient optimizer</text>
+    <text x="22" y="96" fill="#166534" font-size="14">Analytic world-position Jacobians</text>
+    <text x="22" y="124" fill="#166534" font-size="14">Bounded SLSQP optimizer</text>
     <text x="22" y="152" fill="#166534" font-size="14">PyO3 binding via dexi_py</text>
   </g>
   <line x1="410" y1="206" x2="506" y2="206" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="423" y="188" fill="#334155" font-size="13">same YAML + input</text>
-  <rect x="328" y="314" width="264" height="30" rx="15" fill="#fee2e2"/>
-  <text x="350" y="334" fill="#991b1b" font-size="13" font-weight="700">Result: API parity yes, numeric parity incomplete</text>
+  <rect x="308" y="314" width="304" height="30" rx="15" fill="#dcfce7"/>
+  <text x="333" y="334" fill="#166534" font-size="13" font-weight="700">Result: API parity and numeric parity within thresholds</text>
 </svg>
 
   </div>
 
+  <h2>Rendered retargeted outputs</h2>
+  <p>Each mini-render projects the Python FK positions for the Python output qpos and the Rust output qpos onto the XY plane. Connector lines are the residual pose gap for corresponding links.</p>
+  <div class="poses">
+    <svg class="pose" viewBox="0 0 360 300" role="img" aria-label="Retargeted pose overlay">
+<rect width="100%" height="100%" rx="16" fill="#ffffff"/>
+<text x="18" y="26" fill="#0f172a" font-size="13" font-weight="700">schunk_svh_hand_left · position</text>
+<text x="18" y="46" fill="#64748b" font-size="11">pose mean 0.0019 · max 0.00285</text>
+<line x1="320.0" y1="248.9" x2="319.6" y2="250.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="218.0" y1="238.2" x2="216.1" y2="235.3" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="245.8" y1="179.4" x2="243.2" y2="177.4" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="206.0" y1="91.1" x2="209.0" y2="91.1" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="155.4" y1="60.0" x2="156.0" y2="61.5" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="286.4" y1="244.8" x2="288.6" y2="247.6" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="142.2" y1="234.4" x2="141.1" y2="232.3" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="150.8" y1="179.7" x2="149.2" y2="178.5" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="129.1" y1="119.2" x2="131.2" y2="119.2" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="40.0" y1="121.2" x2="44.1" y2="122.7" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="320.0" cy="248.9" r="4.5" fill="#2563eb"><title>Python left_hand_c</title></circle>
+<circle cx="319.6" cy="250.0" r="3.5" fill="#16a34a"><title>Rust left_hand_c</title></circle>
+<circle cx="218.0" cy="238.2" r="4.5" fill="#2563eb"><title>Python left_hand_t</title></circle>
+<circle cx="216.1" cy="235.3" r="3.5" fill="#16a34a"><title>Rust left_hand_t</title></circle>
+<circle cx="245.8" cy="179.4" r="4.5" fill="#2563eb"><title>Python left_hand_s</title></circle>
+<circle cx="243.2" cy="177.4" r="3.5" fill="#16a34a"><title>Rust left_hand_s</title></circle>
+<circle cx="206.0" cy="91.1" r="4.5" fill="#2563eb"><title>Python left_hand_r</title></circle>
+<circle cx="209.0" cy="91.1" r="3.5" fill="#16a34a"><title>Rust left_hand_r</title></circle>
+<circle cx="155.4" cy="60.0" r="4.5" fill="#2563eb"><title>Python left_hand_q</title></circle>
+<circle cx="156.0" cy="61.5" r="3.5" fill="#16a34a"><title>Rust left_hand_q</title></circle>
+<circle cx="286.4" cy="244.8" r="4.5" fill="#2563eb"><title>Python left_hand_b</title></circle>
+<circle cx="288.6" cy="247.6" r="3.5" fill="#16a34a"><title>Rust left_hand_b</title></circle>
+<circle cx="142.2" cy="234.4" r="4.5" fill="#2563eb"><title>Python left_hand_p</title></circle>
+<circle cx="141.1" cy="232.3" r="3.5" fill="#16a34a"><title>Rust left_hand_p</title></circle>
+<circle cx="150.8" cy="179.7" r="4.5" fill="#2563eb"><title>Python left_hand_o</title></circle>
+<circle cx="149.2" cy="178.5" r="3.5" fill="#16a34a"><title>Rust left_hand_o</title></circle>
+<circle cx="129.1" cy="119.2" r="4.5" fill="#2563eb"><title>Python left_hand_n</title></circle>
+<circle cx="131.2" cy="119.2" r="3.5" fill="#16a34a"><title>Rust left_hand_n</title></circle>
+<circle cx="40.0" cy="121.2" r="4.5" fill="#2563eb"><title>Python left_hand_i</title></circle>
+<circle cx="44.1" cy="122.7" r="3.5" fill="#16a34a"><title>Rust left_hand_i</title></circle>
+<text x="18" y="280" fill="#2563eb" font-size="11">● Python FK projection</text>
+<text x="190" y="280" fill="#16a34a" font-size="11">● Rust qpos projection</text>
+</svg>
+<svg class="pose" viewBox="0 0 360 300" role="img" aria-label="Retargeted pose overlay">
+<rect width="100%" height="100%" rx="16" fill="#ffffff"/>
+<text x="18" y="26" fill="#0f172a" font-size="13" font-weight="700">ability_hand_left · vector</text>
+<text x="18" y="46" fill="#64748b" font-size="11">pose mean 0.00141 · max 0.00252</text>
+<line x1="40.0" y1="130.0" x2="40.0" y2="130.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="316.2" y1="244.0" x2="315.6" y2="250.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="259.8" y1="190.6" x2="268.4" y2="190.2" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="286.4" y1="147.2" x2="290.3" y2="147.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="317.1" y1="99.4" x2="318.1" y2="99.6" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="317.9" y1="60.0" x2="320.0" y2="60.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="40.0" cy="130.0" r="4.5" fill="#2563eb"><title>Python base_link</title></circle>
+<circle cx="40.0" cy="130.0" r="3.5" fill="#16a34a"><title>Rust base_link</title></circle>
+<circle cx="316.2" cy="244.0" r="4.5" fill="#2563eb"><title>Python thumb_tip</title></circle>
+<circle cx="315.6" cy="250.0" r="3.5" fill="#16a34a"><title>Rust thumb_tip</title></circle>
+<circle cx="259.8" cy="190.6" r="4.5" fill="#2563eb"><title>Python index_tip</title></circle>
+<circle cx="268.4" cy="190.2" r="3.5" fill="#16a34a"><title>Rust index_tip</title></circle>
+<circle cx="286.4" cy="147.2" r="4.5" fill="#2563eb"><title>Python middle_tip</title></circle>
+<circle cx="290.3" cy="147.0" r="3.5" fill="#16a34a"><title>Rust middle_tip</title></circle>
+<circle cx="317.1" cy="99.4" r="4.5" fill="#2563eb"><title>Python ring_tip</title></circle>
+<circle cx="318.1" cy="99.6" r="3.5" fill="#16a34a"><title>Rust ring_tip</title></circle>
+<circle cx="317.9" cy="60.0" r="4.5" fill="#2563eb"><title>Python pinky_tip</title></circle>
+<circle cx="320.0" cy="60.0" r="3.5" fill="#16a34a"><title>Rust pinky_tip</title></circle>
+<text x="18" y="280" fill="#2563eb" font-size="11">● Python FK projection</text>
+<text x="190" y="280" fill="#16a34a" font-size="11">● Rust qpos projection</text>
+</svg>
+<svg class="pose" viewBox="0 0 360 300" role="img" aria-label="Retargeted pose overlay">
+<rect width="100%" height="100%" rx="16" fill="#ffffff"/>
+<text x="18" y="26" fill="#0f172a" font-size="13" font-weight="700">ability_hand_right · vector</text>
+<text x="18" y="46" fill="#64748b" font-size="11">pose mean 8.65876e-04 · max 0.00246</text>
+<line x1="40.0" y1="174.1" x2="40.0" y2="174.1" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="303.5" y1="64.4" x2="293.0" y2="60.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="314.8" y1="111.1" x2="314.9" y2="111.1" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="310.9" y1="156.8" x2="310.2" y2="156.8" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="318.8" y1="206.6" x2="320.0" y2="206.3" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="290.5" y1="250.0" x2="291.2" y2="250.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="40.0" cy="174.1" r="4.5" fill="#2563eb"><title>Python base_link</title></circle>
+<circle cx="40.0" cy="174.1" r="3.5" fill="#16a34a"><title>Rust base_link</title></circle>
+<circle cx="303.5" cy="64.4" r="4.5" fill="#2563eb"><title>Python thumb_tip</title></circle>
+<circle cx="293.0" cy="60.0" r="3.5" fill="#16a34a"><title>Rust thumb_tip</title></circle>
+<circle cx="314.8" cy="111.1" r="4.5" fill="#2563eb"><title>Python index_tip</title></circle>
+<circle cx="314.9" cy="111.1" r="3.5" fill="#16a34a"><title>Rust index_tip</title></circle>
+<circle cx="310.9" cy="156.8" r="4.5" fill="#2563eb"><title>Python middle_tip</title></circle>
+<circle cx="310.2" cy="156.8" r="3.5" fill="#16a34a"><title>Rust middle_tip</title></circle>
+<circle cx="318.8" cy="206.6" r="4.5" fill="#2563eb"><title>Python ring_tip</title></circle>
+<circle cx="320.0" cy="206.3" r="3.5" fill="#16a34a"><title>Rust ring_tip</title></circle>
+<circle cx="290.5" cy="250.0" r="4.5" fill="#2563eb"><title>Python pinky_tip</title></circle>
+<circle cx="291.2" cy="250.0" r="3.5" fill="#16a34a"><title>Rust pinky_tip</title></circle>
+<text x="18" y="280" fill="#2563eb" font-size="11">● Python FK projection</text>
+<text x="190" y="280" fill="#16a34a" font-size="11">● Rust qpos projection</text>
+</svg>
+<svg class="pose" viewBox="0 0 360 300" role="img" aria-label="Retargeted pose overlay">
+<rect width="100%" height="100%" rx="16" fill="#ffffff"/>
+<text x="18" y="26" fill="#0f172a" font-size="13" font-weight="700">schunk_svh_hand_right · position</text>
+<text x="18" y="46" fill="#64748b" font-size="11">pose mean 0.00207 · max 0.00242</text>
+<line x1="299.9" y1="60.0" x2="306.4" y2="62.1" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="129.1" y1="131.9" x2="137.9" y2="129.5" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="242.0" y1="187.8" x2="246.5" y2="186.7" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="270.4" y1="186.7" x2="274.6" y2="186.9" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="317.8" y1="225.2" x2="320.0" y2="227.1" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="260.8" y1="60.1" x2="266.7" y2="62.7" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="40.0" y1="136.5" x2="47.5" y2="134.4" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="112.1" y1="192.6" x2="116.0" y2="191.5" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="160.2" y1="218.9" x2="163.3" y2="218.8" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="124.8" y1="248.2" x2="125.5" y2="250.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="299.9" cy="60.0" r="4.5" fill="#2563eb"><title>Python right_hand_c</title></circle>
+<circle cx="306.4" cy="62.1" r="3.5" fill="#16a34a"><title>Rust right_hand_c</title></circle>
+<circle cx="129.1" cy="131.9" r="4.5" fill="#2563eb"><title>Python right_hand_t</title></circle>
+<circle cx="137.9" cy="129.5" r="3.5" fill="#16a34a"><title>Rust right_hand_t</title></circle>
+<circle cx="242.0" cy="187.8" r="4.5" fill="#2563eb"><title>Python right_hand_s</title></circle>
+<circle cx="246.5" cy="186.7" r="3.5" fill="#16a34a"><title>Rust right_hand_s</title></circle>
+<circle cx="270.4" cy="186.7" r="4.5" fill="#2563eb"><title>Python right_hand_r</title></circle>
+<circle cx="274.6" cy="186.9" r="3.5" fill="#16a34a"><title>Rust right_hand_r</title></circle>
+<circle cx="317.8" cy="225.2" r="4.5" fill="#2563eb"><title>Python right_hand_q</title></circle>
+<circle cx="320.0" cy="227.1" r="3.5" fill="#16a34a"><title>Rust right_hand_q</title></circle>
+<circle cx="260.8" cy="60.1" r="4.5" fill="#2563eb"><title>Python right_hand_b</title></circle>
+<circle cx="266.7" cy="62.7" r="3.5" fill="#16a34a"><title>Rust right_hand_b</title></circle>
+<circle cx="40.0" cy="136.5" r="4.5" fill="#2563eb"><title>Python right_hand_p</title></circle>
+<circle cx="47.5" cy="134.4" r="3.5" fill="#16a34a"><title>Rust right_hand_p</title></circle>
+<circle cx="112.1" cy="192.6" r="4.5" fill="#2563eb"><title>Python right_hand_o</title></circle>
+<circle cx="116.0" cy="191.5" r="3.5" fill="#16a34a"><title>Rust right_hand_o</title></circle>
+<circle cx="160.2" cy="218.9" r="4.5" fill="#2563eb"><title>Python right_hand_n</title></circle>
+<circle cx="163.3" cy="218.8" r="3.5" fill="#16a34a"><title>Rust right_hand_n</title></circle>
+<circle cx="124.8" cy="248.2" r="4.5" fill="#2563eb"><title>Python right_hand_i</title></circle>
+<circle cx="125.5" cy="250.0" r="3.5" fill="#16a34a"><title>Rust right_hand_i</title></circle>
+<text x="18" y="280" fill="#2563eb" font-size="11">● Python FK projection</text>
+<text x="190" y="280" fill="#16a34a" font-size="11">● Rust qpos projection</text>
+</svg>
+<svg class="pose" viewBox="0 0 360 300" role="img" aria-label="Retargeted pose overlay">
+<rect width="100%" height="100%" rx="16" fill="#ffffff"/>
+<text x="18" y="26" fill="#0f172a" font-size="13" font-weight="700">schunk_svh_hand_right · vector</text>
+<text x="18" y="46" fill="#64748b" font-size="11">pose mean 7.25545e-04 · max 0.00159</text>
+<line x1="40.0" y1="173.8" x2="40.0" y2="173.8" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="319.8" y1="60.0" x2="320.0" y2="60.7" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="231.6" y1="64.9" x2="233.9" y2="60.3" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="256.4" y1="173.8" x2="260.7" y2="173.8" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="303.0" y1="169.3" x2="304.1" y2="170.3" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="285.6" y1="248.4" x2="289.1" y2="250.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="40.0" cy="173.8" r="4.5" fill="#2563eb"><title>Python right_hand_base_link</title></circle>
+<circle cx="40.0" cy="173.8" r="3.5" fill="#16a34a"><title>Rust right_hand_base_link</title></circle>
+<circle cx="319.8" cy="60.0" r="4.5" fill="#2563eb"><title>Python thtip</title></circle>
+<circle cx="320.0" cy="60.7" r="3.5" fill="#16a34a"><title>Rust thtip</title></circle>
+<circle cx="231.6" cy="64.9" r="4.5" fill="#2563eb"><title>Python fftip</title></circle>
+<circle cx="233.9" cy="60.3" r="3.5" fill="#16a34a"><title>Rust fftip</title></circle>
+<circle cx="256.4" cy="173.8" r="4.5" fill="#2563eb"><title>Python mftip</title></circle>
+<circle cx="260.7" cy="173.8" r="3.5" fill="#16a34a"><title>Rust mftip</title></circle>
+<circle cx="303.0" cy="169.3" r="4.5" fill="#2563eb"><title>Python rftip</title></circle>
+<circle cx="304.1" cy="170.3" r="3.5" fill="#16a34a"><title>Rust rftip</title></circle>
+<circle cx="285.6" cy="248.4" r="4.5" fill="#2563eb"><title>Python lftip</title></circle>
+<circle cx="289.1" cy="250.0" r="3.5" fill="#16a34a"><title>Rust lftip</title></circle>
+<text x="18" y="280" fill="#2563eb" font-size="11">● Python FK projection</text>
+<text x="190" y="280" fill="#16a34a" font-size="11">● Rust qpos projection</text>
+</svg>
+<svg class="pose" viewBox="0 0 360 300" role="img" aria-label="Retargeted pose overlay">
+<rect width="100%" height="100%" rx="16" fill="#ffffff"/>
+<text x="18" y="26" fill="#0f172a" font-size="13" font-weight="700">inspire_hand_left · vector</text>
+<text x="18" y="46" fill="#64748b" font-size="11">pose mean 2.76247e-04 · max 0.00111</text>
+<line x1="40.0" y1="135.2" x2="40.0" y2="135.2" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="248.2" y1="250.0" x2="250.8" y2="248.1" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="253.7" y1="196.1" x2="254.8" y2="196.1" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="320.0" y1="150.3" x2="320.0" y2="150.3" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="304.1" y1="105.9" x2="304.0" y2="105.9" stroke="#cbd5e1" stroke-width="1.4"/>
+<line x1="264.0" y1="60.0" x2="263.9" y2="60.0" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="40.0" cy="135.2" r="4.5" fill="#2563eb"><title>Python base</title></circle>
+<circle cx="40.0" cy="135.2" r="3.5" fill="#16a34a"><title>Rust base</title></circle>
+<circle cx="248.2" cy="250.0" r="4.5" fill="#2563eb"><title>Python thumb_tip</title></circle>
+<circle cx="250.8" cy="248.1" r="3.5" fill="#16a34a"><title>Rust thumb_tip</title></circle>
+<circle cx="253.7" cy="196.1" r="4.5" fill="#2563eb"><title>Python index_tip</title></circle>
+<circle cx="254.8" cy="196.1" r="3.5" fill="#16a34a"><title>Rust index_tip</title></circle>
+<circle cx="320.0" cy="150.3" r="4.5" fill="#2563eb"><title>Python middle_tip</title></circle>
+<circle cx="320.0" cy="150.3" r="3.5" fill="#16a34a"><title>Rust middle_tip</title></circle>
+<circle cx="304.1" cy="105.9" r="4.5" fill="#2563eb"><title>Python ring_tip</title></circle>
+<circle cx="304.0" cy="105.9" r="3.5" fill="#16a34a"><title>Rust ring_tip</title></circle>
+<circle cx="264.0" cy="60.0" r="4.5" fill="#2563eb"><title>Python pinky_tip</title></circle>
+<circle cx="263.9" cy="60.0" r="3.5" fill="#16a34a"><title>Rust pinky_tip</title></circle>
+<text x="18" y="280" fill="#2563eb" font-size="11">● Python FK projection</text>
+<text x="190" y="280" fill="#16a34a" font-size="11">● Rust qpos projection</text>
+</svg>
+  </div>
+
   <h2>Aggregate table</h2>
   <table>
-    <thead><tr><th>Type</th><th>Configs</th><th>Average mean abs</th><th>Worst mean abs</th><th>Worst max abs</th></tr></thead>
-    <tbody><tr><td>dexpilot</td><td>13</td><td>7.9540e-04</td><td>0.0054</td><td>0.017</td></tr>
-<tr><td>position</td><td>13</td><td>0.0014</td><td>0.011</td><td>0.0375</td></tr>
-<tr><td>vector</td><td>13</td><td>0.0043</td><td>0.0184</td><td>0.0552</td></tr></tbody>
+    <thead><tr><th>Type</th><th>Configs</th><th>Average mean abs</th><th>Worst mean abs</th><th>Worst max abs</th><th>Worst pose mean</th><th>Worst pose max</th><th>Python ms</th><th>Rust ms</th><th>Speedup</th></tr></thead>
+    <tbody><tr><td>dexpilot</td><td>13</td><td>7.9540e-04</td><td>0.0054</td><td>0.017</td><td>3.7089e-04</td><td>7.6788e-04</td><td>1.4829</td><td>2.6093e+02</td><td>0.007×</td></tr>
+<tr><td>position</td><td>13</td><td>0.0014</td><td>0.011</td><td>0.0375</td><td>0.0021</td><td>0.0028</td><td>1.4426</td><td>8.9122e+02</td><td>0.002×</td></tr>
+<tr><td>vector</td><td>13</td><td>0.0043</td><td>0.0184</td><td>0.0552</td><td>0.0014</td><td>0.0025</td><td>1.2446</td><td>2.3457e+02</td><td>0.005×</td></tr></tbody>
   </table>
 
   <h2>Per-config comparison table</h2>
   <table>
-    <thead><tr><th>Config</th><th>Type</th><th>Hand</th><th>DOF</th><th>Fixed DOF</th><th>Mean abs</th><th>Max abs</th><th>RMS</th><th>Qualitative</th></tr></thead>
-    <tbody><tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>ability_hand_left</td><td>10</td><td>0</td><td>0.002026</td><td>0.010536</td><td>0.003722</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>ability_hand_right</td><td>10</td><td>0</td><td>4.027995e-04</td><td>6.339641e-04</td><td>4.654532e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>allegro_hand_left</td><td>16</td><td>0</td><td>0.005448</td><td>0.017004</td><td>0.00725</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>allegro_hand_right</td><td>16</td><td>0</td><td>2.811804e-08</td><td>5.145502e-08</td><td>3.343266e-08</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>inspire_hand_left</td><td>12</td><td>0</td><td>2.088721e-04</td><td>5.921690e-04</td><td>2.717105e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>inspire_hand_right</td><td>12</td><td>0</td><td>4.421366e-04</td><td>0.001109</td><td>5.986068e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>leap_hand_left</td><td>16</td><td>0</td><td>4.432683e-04</td><td>0.001774</td><td>6.367657e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>leap_hand_right</td><td>16</td><td>0</td><td>1.528336e-04</td><td>3.833182e-04</td><td>1.854221e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper_dexpilot.yml</code></td><td>dexpilot</td><td>panda_gripper</td><td>2</td><td>0</td><td>2.880646e-12</td><td>2.880646e-12</td><td>2.880646e-12</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>schunk_svh_hand_left</td><td>20</td><td>0</td><td>3.407441e-04</td><td>7.663851e-04</td><td>4.448497e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>schunk_svh_hand_right</td><td>20</td><td>0</td><td>5.314134e-04</td><td>0.001862</td><td>8.050646e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>shadow_hand_left</td><td>24</td><td>0</td><td>2.437045e-04</td><td>0.001485</td><td>3.908505e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>shadow_hand_right</td><td>24</td><td>0</td><td>1.000809e-04</td><td>3.714660e-04</td><td>1.430788e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_left.yml</code></td><td>position</td><td>ability_hand_left</td><td>16</td><td>0</td><td>9.335793e-04</td><td>0.002619</td><td>0.001156</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_right.yml</code></td><td>position</td><td>ability_hand_right</td><td>16</td><td>0</td><td>7.988598e-05</td><td>2.463819e-04</td><td>1.133622e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_left.yml</code></td><td>position</td><td>allegro_hand_left</td><td>22</td><td>0</td><td>1.401592e-04</td><td>4.822674e-04</td><td>1.850666e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_right.yml</code></td><td>position</td><td>allegro_hand_right</td><td>22</td><td>0</td><td>5.988822e-04</td><td>0.001687</td><td>7.432601e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_left.yml</code></td><td>position</td><td>inspire_hand_left</td><td>18</td><td>0</td><td>9.050083e-05</td><td>2.128283e-04</td><td>1.109835e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_right.yml</code></td><td>position</td><td>inspire_hand_right</td><td>18</td><td>0</td><td>2.325505e-06</td><td>9.628825e-06</td><td>3.172215e-06</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_left.yml</code></td><td>position</td><td>leap_hand_left</td><td>22</td><td>0</td><td>3.135954e-04</td><td>0.001067</td><td>4.367283e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_right.yml</code></td><td>position</td><td>leap_hand_right</td><td>22</td><td>0</td><td>1.692601e-05</td><td>3.811976e-05</td><td>1.938361e-05</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/panda_gripper.yml</code></td><td>position</td><td>panda_gripper</td><td>8</td><td>0</td><td>2.610582e-04</td><td>0.001568</td><td>5.633596e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_left.yml</code></td><td>position</td><td>schunk_svh_hand_left</td><td>26</td><td>0</td><td>0.010996</td><td>0.037467</td><td>0.015599</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_right.yml</code></td><td>position</td><td>schunk_svh_hand_right</td><td>26</td><td>0</td><td>0.004186</td><td>0.02061</td><td>0.006171</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_left.yml</code></td><td>position</td><td>shadow_hand_left</td><td>30</td><td>0</td><td>2.477706e-04</td><td>0.001747</td><td>4.321042e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_right.yml</code></td><td>position</td><td>shadow_hand_right</td><td>30</td><td>0</td><td>3.470464e-04</td><td>0.001397</td><td>4.905327e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left.yml</code></td><td>vector</td><td>ability_hand_left</td><td>10</td><td>0</td><td>0.018384</td><td>0.030009</td><td>0.019889</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right.yml</code></td><td>vector</td><td>ability_hand_right</td><td>10</td><td>0</td><td>0.013111</td><td>0.055218</td><td>0.020544</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left.yml</code></td><td>vector</td><td>allegro_hand_left</td><td>16</td><td>0</td><td>0.001636</td><td>0.004242</td><td>0.002039</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right.yml</code></td><td>vector</td><td>allegro_hand_right</td><td>16</td><td>0</td><td>0.001225</td><td>0.004461</td><td>0.001693</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left.yml</code></td><td>vector</td><td>inspire_hand_left</td><td>12</td><td>0</td><td>0.002716</td><td>0.022525</td><td>0.006693</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right.yml</code></td><td>vector</td><td>inspire_hand_right</td><td>12</td><td>0</td><td>0.002018</td><td>0.004272</td><td>0.002561</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left.yml</code></td><td>vector</td><td>leap_hand_left</td><td>16</td><td>0</td><td>0.001617</td><td>0.004778</td><td>0.002165</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right.yml</code></td><td>vector</td><td>leap_hand_right</td><td>16</td><td>0</td><td>2.129803e-08</td><td>5.453426e-08</td><td>2.599707e-08</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper.yml</code></td><td>vector</td><td>panda_gripper</td><td>2</td><td>0</td><td>4.613394e-10</td><td>4.613394e-10</td><td>4.613394e-10</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left.yml</code></td><td>vector</td><td>schunk_svh_hand_left</td><td>20</td><td>0</td><td>3.051060e-08</td><td>6.735133e-08</td><td>3.729117e-08</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right.yml</code></td><td>vector</td><td>schunk_svh_hand_right</td><td>20</td><td>0</td><td>0.015353</td><td>0.049469</td><td>0.02055</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left.yml</code></td><td>vector</td><td>shadow_hand_left</td><td>24</td><td>0</td><td>1.958982e-04</td><td>6.458045e-04</td><td>2.641177e-04</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right.yml</code></td><td>vector</td><td>shadow_hand_right</td><td>24</td><td>0</td><td>3.276462e-08</td><td>1.200999e-07</td><td>4.353242e-08</td><td><span class="pill pass">pass</span></td></tr></tbody>
+    <thead><tr><th>Config</th><th>Type</th><th>Hand</th><th>DOF</th><th>Fixed DOF</th><th>Mean abs</th><th>Max abs</th><th>RMS</th><th>Pose mean</th><th>Pose max</th><th>Python ms</th><th>Rust ms</th><th>Speedup</th><th>Qualitative</th></tr></thead>
+    <tbody><tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>ability_hand_left</td><td>10</td><td>0</td><td>0.002026</td><td>0.010536</td><td>0.003722</td><td>1.614174e-04</td><td>6.640634e-04</td><td>0.9682</td><td>1.2576e+02</td><td>0.008×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>ability_hand_right</td><td>10</td><td>0</td><td>4.027995e-04</td><td>6.339641e-04</td><td>4.654532e-04</td><td>3.179406e-05</td><td>6.263928e-05</td><td>1.4829</td><td>1.0387e+02</td><td>0.014×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>allegro_hand_left</td><td>16</td><td>0</td><td>0.005448</td><td>0.017004</td><td>0.00725</td><td>3.708867e-04</td><td>7.678788e-04</td><td>1.2798</td><td>2.6093e+02</td><td>0.005×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>allegro_hand_right</td><td>16</td><td>0</td><td>2.811804e-08</td><td>5.145502e-08</td><td>3.343266e-08</td><td>3.143214e-09</td><td>8.628029e-09</td><td>1.5246</td><td>2.6801e+02</td><td>0.006×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>inspire_hand_left</td><td>12</td><td>0</td><td>2.088721e-04</td><td>5.921690e-04</td><td>2.717105e-04</td><td>2.132007e-05</td><td>5.728526e-05</td><td>0.8321</td><td>1.1532e+02</td><td>0.007×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>inspire_hand_right</td><td>12</td><td>0</td><td>4.421366e-04</td><td>0.001109</td><td>5.986068e-04</td><td>4.815250e-05</td><td>1.118054e-04</td><td>1.3581</td><td>1.4103e+02</td><td>0.01×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>leap_hand_left</td><td>16</td><td>0</td><td>4.432683e-04</td><td>0.001774</td><td>6.367657e-04</td><td>4.442103e-05</td><td>9.624873e-05</td><td>2.1975</td><td>2.7669e+02</td><td>0.008×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>leap_hand_right</td><td>16</td><td>0</td><td>1.528336e-04</td><td>3.833182e-04</td><td>1.854221e-04</td><td>1.438458e-05</td><td>3.020846e-05</td><td>1.4769</td><td>2.2468e+02</td><td>0.007×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper_dexpilot.yml</code></td><td>dexpilot</td><td>panda_gripper</td><td>2</td><td>0</td><td>2.880646e-12</td><td>2.880646e-12</td><td>2.880646e-12</td><td>1.920431e-12</td><td>2.880646e-12</td><td>0.3953</td><td>1.6374</td><td>0.241×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>schunk_svh_hand_left</td><td>20</td><td>0</td><td>3.407441e-04</td><td>7.663851e-04</td><td>4.448497e-04</td><td>2.851714e-05</td><td>5.394623e-05</td><td>1.8059</td><td>5.2869e+02</td><td>0.003×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>schunk_svh_hand_right</td><td>20</td><td>0</td><td>5.314134e-04</td><td>0.001862</td><td>8.050646e-04</td><td>2.958456e-05</td><td>8.314749e-05</td><td>2.1847</td><td>4.8909e+02</td><td>0.004×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>shadow_hand_left</td><td>24</td><td>0</td><td>2.437045e-04</td><td>0.001485</td><td>3.908505e-04</td><td>5.644299e-05</td><td>1.279636e-04</td><td>2.726</td><td>7.5491e+02</td><td>0.004×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>shadow_hand_right</td><td>24</td><td>0</td><td>1.000809e-04</td><td>3.714660e-04</td><td>1.430788e-04</td><td>1.755641e-05</td><td>3.594768e-05</td><td>4.1804</td><td>3.6251e+03</td><td>0.001×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_left.yml</code></td><td>position</td><td>ability_hand_left</td><td>16</td><td>0</td><td>9.335793e-04</td><td>0.002619</td><td>0.001156</td><td>9.556910e-04</td><td>0.001087</td><td>1.0504</td><td>2.6922e+02</td><td>0.004×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_right.yml</code></td><td>position</td><td>ability_hand_right</td><td>16</td><td>0</td><td>7.988598e-05</td><td>2.463819e-04</td><td>1.133622e-04</td><td>4.927749e-05</td><td>6.137778e-05</td><td>0.9565</td><td>2.6887e+02</td><td>0.004×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_left.yml</code></td><td>position</td><td>allegro_hand_left</td><td>22</td><td>0</td><td>1.401592e-04</td><td>4.822674e-04</td><td>1.850666e-04</td><td>1.030190e-04</td><td>1.338051e-04</td><td>1.7426</td><td>9.0900e+02</td><td>0.002×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_right.yml</code></td><td>position</td><td>allegro_hand_right</td><td>22</td><td>0</td><td>5.988822e-04</td><td>0.001687</td><td>7.432601e-04</td><td>3.151251e-04</td><td>4.431586e-04</td><td>1.7024</td><td>8.9122e+02</td><td>0.002×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_left.yml</code></td><td>position</td><td>inspire_hand_left</td><td>18</td><td>0</td><td>9.050083e-05</td><td>2.128283e-04</td><td>1.109835e-04</td><td>1.841442e-05</td><td>2.985069e-05</td><td>1.1492</td><td>3.7899e+02</td><td>0.003×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_right.yml</code></td><td>position</td><td>inspire_hand_right</td><td>18</td><td>0</td><td>2.325505e-06</td><td>9.628825e-06</td><td>3.172215e-06</td><td>1.001662e-06</td><td>1.373336e-06</td><td>0.8937</td><td>2.7820e+02</td><td>0.003×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_left.yml</code></td><td>position</td><td>leap_hand_left</td><td>22</td><td>0</td><td>3.135954e-04</td><td>0.001067</td><td>4.367283e-04</td><td>1.660952e-04</td><td>2.477665e-04</td><td>1.4426</td><td>6.8738e+02</td><td>0.002×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_right.yml</code></td><td>position</td><td>leap_hand_right</td><td>22</td><td>0</td><td>1.692601e-05</td><td>3.811976e-05</td><td>1.938361e-05</td><td>2.620275e-05</td><td>2.817290e-05</td><td>1.8614</td><td>9.1471e+02</td><td>0.002×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/panda_gripper.yml</code></td><td>position</td><td>panda_gripper</td><td>8</td><td>0</td><td>2.610582e-04</td><td>0.001568</td><td>5.633596e-04</td><td>2.566672e-04</td><td>2.665463e-04</td><td>0.7228</td><td>25.8972</td><td>0.028×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_left.yml</code></td><td>position</td><td>schunk_svh_hand_left</td><td>26</td><td>0</td><td>0.010996</td><td>0.037467</td><td>0.015599</td><td>0.001904</td><td>0.002848</td><td>1.655</td><td>1.2772e+03</td><td>0.001×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_right.yml</code></td><td>position</td><td>schunk_svh_hand_right</td><td>26</td><td>0</td><td>0.004186</td><td>0.02061</td><td>0.006171</td><td>0.002065</td><td>0.002423</td><td>1.3948</td><td>1.3238e+03</td><td>0.001×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_left.yml</code></td><td>position</td><td>shadow_hand_left</td><td>30</td><td>0</td><td>2.477706e-04</td><td>0.001747</td><td>4.321042e-04</td><td>1.262731e-04</td><td>2.506196e-04</td><td>3.3096</td><td>2.1664e+03</td><td>0.002×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_right.yml</code></td><td>position</td><td>shadow_hand_right</td><td>30</td><td>0</td><td>3.470464e-04</td><td>0.001397</td><td>4.905327e-04</td><td>1.273374e-04</td><td>1.599016e-04</td><td>2.8476</td><td>2.2857e+03</td><td>0.001×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left.yml</code></td><td>vector</td><td>ability_hand_left</td><td>10</td><td>0</td><td>0.018384</td><td>0.030009</td><td>0.019889</td><td>0.001412</td><td>0.002516</td><td>1.3148</td><td>86.709</td><td>0.015×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right.yml</code></td><td>vector</td><td>ability_hand_right</td><td>10</td><td>0</td><td>0.013111</td><td>0.055218</td><td>0.020544</td><td>8.658755e-04</td><td>0.002458</td><td>0.9178</td><td>1.0450e+02</td><td>0.009×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left.yml</code></td><td>vector</td><td>allegro_hand_left</td><td>16</td><td>0</td><td>0.001636</td><td>0.004242</td><td>0.002039</td><td>3.598643e-04</td><td>6.525242e-04</td><td>1.444</td><td>2.7703e+02</td><td>0.005×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right.yml</code></td><td>vector</td><td>allegro_hand_right</td><td>16</td><td>0</td><td>0.001225</td><td>0.004461</td><td>0.001693</td><td>2.799449e-04</td><td>5.306287e-04</td><td>1.3866</td><td>2.3776e+02</td><td>0.006×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left.yml</code></td><td>vector</td><td>inspire_hand_left</td><td>12</td><td>0</td><td>0.002716</td><td>0.022525</td><td>0.006693</td><td>2.762468e-04</td><td>0.00111</td><td>1.0762</td><td>1.9055e+02</td><td>0.006×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right.yml</code></td><td>vector</td><td>inspire_hand_right</td><td>12</td><td>0</td><td>0.002018</td><td>0.004272</td><td>0.002561</td><td>2.131295e-04</td><td>4.125834e-04</td><td>0.841</td><td>1.2401e+02</td><td>0.007×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left.yml</code></td><td>vector</td><td>leap_hand_left</td><td>16</td><td>0</td><td>0.001617</td><td>0.004778</td><td>0.002165</td><td>2.349605e-04</td><td>6.033215e-04</td><td>0.905</td><td>2.2230e+02</td><td>0.004×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right.yml</code></td><td>vector</td><td>leap_hand_right</td><td>16</td><td>0</td><td>2.129803e-08</td><td>5.453426e-08</td><td>2.599707e-08</td><td>3.000052e-09</td><td>5.853239e-09</td><td>1.2446</td><td>2.3457e+02</td><td>0.005×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper.yml</code></td><td>vector</td><td>panda_gripper</td><td>2</td><td>0</td><td>4.613394e-10</td><td>4.613394e-10</td><td>4.613394e-10</td><td>4.613394e-10</td><td>4.613394e-10</td><td>0.621</td><td>2.2302</td><td>0.278×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left.yml</code></td><td>vector</td><td>schunk_svh_hand_left</td><td>20</td><td>0</td><td>3.051060e-08</td><td>6.735133e-08</td><td>3.729117e-08</td><td>1.694115e-09</td><td>3.545737e-09</td><td>1.7083</td><td>5.4625e+02</td><td>0.003×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right.yml</code></td><td>vector</td><td>schunk_svh_hand_right</td><td>20</td><td>0</td><td>0.015353</td><td>0.049469</td><td>0.02055</td><td>7.255447e-04</td><td>0.001587</td><td>1.0841</td><td>5.6940e+02</td><td>0.002×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left.yml</code></td><td>vector</td><td>shadow_hand_left</td><td>24</td><td>0</td><td>1.958982e-04</td><td>6.458045e-04</td><td>2.641177e-04</td><td>6.955884e-05</td><td>9.391414e-05</td><td>2.7287</td><td>1.4376e+03</td><td>0.002×</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right.yml</code></td><td>vector</td><td>shadow_hand_right</td><td>24</td><td>0</td><td>3.276462e-08</td><td>1.200999e-07</td><td>4.353242e-08</td><td>3.862451e-09</td><td>1.011414e-08</td><td>3.5822</td><td>2.5827e+03</td><td>0.001×</td><td><span class="pill pass">pass</span></td></tr></tbody>
   </table>
 
-  <footer>Generated from <code>scripts/compare_python_rust.py</code> output. The Rust path intentionally uses pure Rust kinematics and optimization, so the report records both successful cross-language execution and current numerical drift.</footer>
+  <footer>Generated from <code>scripts/compare_python_rust.py</code> output. The Rust path uses pure Rust kinematics and bounded optimization; the report records qpos parity, rendered pose parity, and retarget performance for every supported config.</footer>
 </main>
 </body>
 </html>
