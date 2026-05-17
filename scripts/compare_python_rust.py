@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import os
@@ -116,6 +117,65 @@ def deterministic_reference(rng: np.random.Generator, cfg: dict[str, Any]) -> np
     return ref
 
 
+def deterministic_feasible_reference(
+    rng: np.random.Generator, cfg: dict[str, Any], py_retargeting: Any
+) -> np.ndarray:
+    """Generate a deterministic target by forwarding a reachable robot qpos.
+
+    The optimizer can have multiple joint-space solutions for one cartesian hand
+    target. Comparing qpos for arbitrary random cartesian targets therefore mixes
+    implementation drift with IK non-uniqueness. This probe samples a valid robot
+    posture near the default warm start, forwards it through the reference
+    kinematics, then asks both implementations to retarget that reachable task.
+    """
+
+    optimizer = py_retargeting.optimizer
+    robot = optimizer.robot
+    idx_target = np.asarray(optimizer.idx_pin2target, dtype=int)
+    idx_fixed = np.asarray(optimizer.idx_pin2fixed, dtype=int)
+    full_limits = np.asarray(robot.joint_limits, dtype=np.float64)
+    target_limits = full_limits[idx_target]
+    base = np.asarray(py_retargeting.last_qpos, dtype=np.float64)
+    # Keep the sample close to the default state so the regularized IK optimum is
+    # well-conditioned and not an arbitrary alternative solution.
+    span = np.minimum(np.maximum(target_limits[:, 1] - target_limits[:, 0], 1e-3), 0.8)
+    sample = base + rng.normal(loc=0.0, scale=0.18, size=base.shape) * span
+    sample = np.clip(sample, target_limits[:, 0] + 1e-3, target_limits[:, 1] - 1e-3)
+
+    qpos = np.zeros(robot.dof, dtype=np.float64)
+    if idx_fixed.size:
+        qpos[idx_fixed] = 0.0
+    qpos[idx_target] = sample
+    if getattr(optimizer, "adaptor", None) is not None:
+        qpos = optimizer.adaptor.forward_qpos(qpos)
+
+    robot.compute_forward_kinematics(qpos)
+    rtype = str(cfg["type"]).lower()
+    if rtype == "position":
+        indices = [robot.get_link_index(name) for name in cfg["target_link_names"]]
+        return np.asarray([robot.get_link_pose(index)[:3, 3] for index in indices], dtype=np.float32)
+
+    if rtype == "vector":
+        origin_names = cfg["target_origin_link_names"]
+        task_names = cfg["target_task_link_names"]
+    elif rtype == "dexpilot":
+        origin_names = optimizer.origin_link_names
+        task_names = optimizer.task_link_names
+    else:
+        raise ValueError(f"Unknown retargeting type: {cfg['type']}")
+
+    origin = np.asarray(
+        [robot.get_link_pose(robot.get_link_index(name))[:3, 3] for name in origin_names],
+        dtype=np.float64,
+    )
+    task = np.asarray(
+        [robot.get_link_pose(robot.get_link_index(name))[:3, 3] for name in task_names],
+        dtype=np.float64,
+    )
+    scaling = float(cfg.get("scaling_factor", 1.0))
+    return ((task - origin) / scaling).astype(np.float32)
+
+
 def materialize_absolute_config(path: Path, tmp_dir: Path) -> tuple[Path, dict[str, Any]]:
     data = yaml.safe_load(path.read_text())
     cfg = data["retargeting"]
@@ -132,7 +192,8 @@ def materialize_absolute_config(path: Path, tmp_dir: Path) -> tuple[Path, dict[s
 def compare_one(
     path: Path,
     tmp_dir: Path,
-    rng: np.random.Generator,
+    seed: int,
+    input_mode: str,
     py_config_cls: Any,
     dexi_py: Any,
 ) -> ComparisonRow:
@@ -151,7 +212,13 @@ def compare_one(
         if py_fixed_dof != rust_fixed_dof:
             raise ValueError(f"fixed DOF mismatch: python={py_fixed_dof}, rust={rust_fixed_dof}")
 
-        ref_value = deterministic_reference(rng, cfg)
+        digest = hashlib.sha256(f"{seed}:{rel}".encode()).digest()
+        config_seed = int.from_bytes(digest[:8], "little") & ((1 << 63) - 1)
+        rng = np.random.default_rng(config_seed)
+        if input_mode == "feasible":
+            ref_value = deterministic_feasible_reference(rng, cfg, py_retargeting)
+        else:
+            ref_value = deterministic_reference(rng, cfg)
         fixed_qpos = np.zeros(py_fixed_dof, dtype=np.float32)
 
         py_qpos = np.asarray(py_retargeting.retarget(ref_value, fixed_qpos), dtype=np.float64)
@@ -204,7 +271,11 @@ def write_outputs(rows: list[ComparisonRow], json_path: Path | None, csv_path: P
     if csv_path is not None:
         csv_path.parent.mkdir(parents=True, exist_ok=True)
         with csv_path.open("w", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(records[0].keys()) if records else [])
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=list(records[0].keys()) if records else [],
+                lineterminator="\n",
+            )
             writer.writeheader()
             writer.writerows(records)
 
@@ -215,6 +286,12 @@ def main() -> int:
     parser.add_argument("--max-mean-error", type=float, default=5e-2)
     parser.add_argument("--max-max-error", type=float, default=5e-1)
     parser.add_argument("--fail-on-threshold", action="store_true")
+    parser.add_argument(
+        "--input-mode",
+        choices=["feasible", "random"],
+        default="feasible",
+        help="Use reachable FK-derived probes by default; random keeps the older arbitrary cartesian probe.",
+    )
     parser.add_argument("--json", type=Path, default=None, help="Optional JSON report path")
     parser.add_argument("--csv", type=Path, default=None, help="Optional CSV report path")
     parser.add_argument("configs", nargs="*", type=Path, help="Optional specific config paths")
@@ -225,10 +302,21 @@ def main() -> int:
     py_config_cls.set_default_urdf_dir(REFERENCE_URDF_DIR)
 
     paths = args.configs or config_paths()
-    rng = np.random.default_rng(args.seed)
+    print("config,type,hand,dof,fixed_dof,mean_abs,max_abs,rms,status")
     with tempfile.TemporaryDirectory(prefix="dexi-compare-configs-") as tmp:
         tmp_dir = Path(tmp)
-        rows = [compare_one(path.resolve(), tmp_dir, rng, py_config_cls, dexi_py) for path in paths]
+        rows = []
+        for path in paths:
+            row = compare_one(
+                path.resolve(), tmp_dir, args.seed, args.input_mode, py_config_cls, dexi_py
+            )
+            rows.append(row)
+            print(
+                f"{row.config},{row.retargeting_type},{row.hand},{row.dof},{row.fixed_dof},"
+                f"{row.mean_abs_error:.6g},{row.max_abs_error:.6g},{row.rms_error:.6g},"
+                f"{row.status}{(': ' + row.message) if row.message else ''}",
+                flush=True,
+            )
 
     ok_rows = [row for row in rows if row.status == "ok"]
     error_rows = [row for row in rows if row.status != "ok"]
@@ -237,14 +325,6 @@ def main() -> int:
         for row in ok_rows
         if row.mean_abs_error > args.max_mean_error or row.max_abs_error > args.max_max_error
     ]
-
-    print("config,type,hand,dof,fixed_dof,mean_abs,max_abs,rms,status")
-    for row in rows:
-        print(
-            f"{row.config},{row.retargeting_type},{row.hand},{row.dof},{row.fixed_dof},"
-            f"{row.mean_abs_error:.6g},{row.max_abs_error:.6g},{row.rms_error:.6g},"
-            f"{row.status}{(': ' + row.message) if row.message else ''}"
-        )
 
     if ok_rows:
         print(

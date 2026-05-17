@@ -3,6 +3,8 @@
 use crate::kinematics_adaptor::MimicJointKinematicAdaptor;
 use crate::robot_wrapper::RobotWrapper;
 use nalgebra::DMatrix;
+use slsqp::{minimize, StopTols};
+use std::cell::RefCell;
 
 /// Base optimizer trait
 pub trait Optimizer: Send {
@@ -47,6 +49,101 @@ fn huber_loss_grad(x: f64, beta: f64) -> f64 {
         x / beta
     } else {
         x.signum()
+    }
+}
+
+fn make_qpos(
+    ndof: usize,
+    idx_fixed: &[usize],
+    fixed_qpos: &[f64],
+    idx_target: &[usize],
+    x: &[f64],
+    adaptor: Option<&MimicJointKinematicAdaptor>,
+) -> Vec<f64> {
+    let mut qpos = vec![0.0; ndof];
+    for (i, &fi) in idx_fixed.iter().enumerate() {
+        if i < fixed_qpos.len() {
+            qpos[fi] = fixed_qpos[i];
+        }
+    }
+    for (i, &ti) in idx_target.iter().enumerate() {
+        qpos[ti] = x[i];
+    }
+    if let Some(adaptor) = adaptor {
+        adaptor.forward_qpos(&mut qpos);
+    }
+    qpos
+}
+
+fn target_jacobian(
+    jac_full: &DMatrix<f64>,
+    opt_dof: usize,
+    idx_target: &[usize],
+    adaptor: Option<&MimicJointKinematicAdaptor>,
+) -> DMatrix<f64> {
+    let kin_jac = if jac_full.nrows() == 3 {
+        jac_full.clone()
+    } else {
+        jac_full.rows(0, 3).into_owned()
+    };
+    if let Some(adaptor) = adaptor {
+        adaptor.backward_jacobian(&kin_jac)
+    } else {
+        let mut sel = DMatrix::zeros(3, opt_dof);
+        for (col, &idx) in idx_target.iter().enumerate() {
+            for row in 0..3 {
+                sel[(row, col)] = kin_jac[(row, idx)];
+            }
+        }
+        sel
+    }
+}
+
+fn add_regularization(
+    value: &mut f64,
+    grad: Option<&mut [f64]>,
+    x: &[f64],
+    last_qpos: &[f64],
+    norm_delta: f64,
+) {
+    if norm_delta == 0.0 {
+        return;
+    }
+    match grad {
+        Some(g) => {
+            for (j, gj) in g.iter_mut().enumerate() {
+                let delta = x[j] - last_qpos.get(j).copied().unwrap_or(0.0);
+                *value += norm_delta * delta * delta;
+                *gj += 2.0 * norm_delta * delta;
+            }
+        }
+        None => {
+            for (j, &xj) in x.iter().enumerate() {
+                let delta = xj - last_qpos.get(j).copied().unwrap_or(0.0);
+                *value += norm_delta * delta * delta;
+            }
+        }
+    }
+}
+
+fn slsqp_solve<F>(
+    xinit: &[f64],
+    bounds: &[(f64, f64)],
+    ftol_abs: f64,
+    maxeval: usize,
+    func: F,
+) -> Vec<f64>
+where
+    F: slsqp::Func<()>,
+{
+    let cons: Vec<&dyn slsqp::Func<()>> = Vec::new();
+    let stop_tol = StopTols {
+        ftol_abs,
+        ..StopTols::default()
+    };
+    match minimize(func, xinit, bounds, &cons, (), maxeval, Some(stop_tol)) {
+        Ok((_status, x, _value)) => x,
+        Err((_status, x, _value)) => x,
     }
 }
 
@@ -156,90 +253,57 @@ impl Optimizer for PositionOptimizer {
                 .min(self.data.joint_upper[i]);
         }
 
-        let lr = 0.1;
-        let max_iter = 300;
+        let idx_fixed = self.data.idx_pin2fixed.clone();
+        let idx_target = self.data.idx_pin2target.clone();
+        let joint_lower = self.data.joint_lower.clone();
+        let joint_upper = self.data.joint_upper.clone();
+        let bounds: Vec<(f64, f64)> = joint_lower.into_iter().zip(joint_upper).collect();
+        let target_link_indices = self.target_link_indices.clone();
+        let adaptor = self.data.adaptor.clone();
+        let fixed = fixed_qpos.to_vec();
+        let last = last_qpos.to_vec();
+        let huber_delta = self.huber_delta;
+        let norm_delta = self.norm_delta;
+        let robot_cell = RefCell::new(&mut self.data.robot);
 
-        for _iter in 0..max_iter {
-            let mut qpos = vec![0.0; ndof];
-            for (i, &fi) in self.data.idx_pin2fixed.iter().enumerate() {
-                if i < fixed_qpos.len() {
-                    qpos[fi] = fixed_qpos[i];
-                }
+        slsqp_solve(&x, &bounds, 1e-5, 200, |x, gradient, _| {
+            let mut robot = robot_cell.borrow_mut();
+            let qpos = make_qpos(ndof, &idx_fixed, &fixed, &idx_target, x, adaptor.as_ref());
+            robot.compute_forward_kinematics(&qpos);
+            let mut value = 0.0;
+            let mut maybe_grad = gradient;
+            if let Some(g) = maybe_grad.as_deref_mut() {
+                g.fill(0.0);
             }
-            for (i, &ti) in self.data.idx_pin2target.iter().enumerate() {
-                qpos[ti] = x[i];
-            }
-
-            if let Some(ref adaptor) = self.data.adaptor {
-                adaptor.forward_qpos(&mut qpos);
-            }
-
-            self.data.robot.compute_forward_kinematics(&qpos);
-
-            let mut grad = vec![0.0; opt_dof];
-
-            for (li, &link_idx) in self.target_link_indices.iter().enumerate() {
-                let pose = self.data.robot.get_link_pose(link_idx);
+            let denom = (n_links * 3) as f64;
+            for (li, &link_idx) in target_link_indices.iter().enumerate() {
+                let pose = robot.get_link_pose(link_idx);
                 let body_pos = [pose[(0, 3)], pose[(1, 3)], pose[(2, 3)]];
-
-                let jac_full = self
-                    .data
-                    .robot
-                    .compute_single_link_local_jacobian(&qpos, link_idx);
-                let link_rot = pose.fixed_view::<3, 3>(0, 0);
-
-                // World jacobian: R * body_jacobian_position_rows
-                let world_jac_3 = &jac_full.rows(0, 3);
-                let link_rot_dm = DMatrix::from_iterator(3, 3, link_rot.iter().cloned());
-                let kin_jac = &link_rot_dm * world_jac_3;
-
-                let jac_target = if let Some(ref adaptor) = self.data.adaptor {
-                    adaptor.backward_jacobian(&kin_jac)
+                let jac_target = if maybe_grad.is_some() {
+                    let jac_full = robot.compute_single_link_local_jacobian(&qpos, link_idx);
+                    Some(target_jacobian(
+                        &jac_full,
+                        opt_dof,
+                        &idx_target,
+                        adaptor.as_ref(),
+                    ))
                 } else {
-                    let mut sel = DMatrix::zeros(3, opt_dof);
-                    for (col, &idx) in self.data.idx_pin2target.iter().enumerate() {
-                        for row in 0..3 {
-                            sel[(row, col)] = kin_jac[(row, idx)];
-                        }
-                    }
-                    sel
+                    None
                 };
-
-                // Gradient of huber w.r.t. body position
                 for d in 0..3 {
                     let err = body_pos[d] - target_pos[li][d];
-                    let dloss_dpos = huber_loss_grad(err, self.huber_delta);
-                    for j in 0..opt_dof {
-                        grad[j] += dloss_dpos * jac_target[(d, j)] / (n_links as f64);
+                    value += huber_loss(err, huber_delta) / denom;
+                    if let (Some(g), Some(jac)) = (maybe_grad.as_deref_mut(), jac_target.as_ref()) {
+                        let dloss_dpos = huber_loss_grad(err, huber_delta) / denom;
+                        for j in 0..opt_dof {
+                            g[j] += dloss_dpos * jac[(d, j)];
+                        }
                     }
                 }
             }
-
-            // Regularization
-            for j in 0..opt_dof {
-                grad[j] +=
-                    2.0 * self.norm_delta * (x[j] - last_qpos.get(j).copied().unwrap_or(0.0));
-            }
-
-            let old_x = x.clone();
-            for j in 0..opt_dof {
-                x[j] -= lr * grad[j];
-                x[j] = x[j]
-                    .max(self.data.joint_lower[j])
-                    .min(self.data.joint_upper[j]);
-            }
-
-            let change: f64 = x
-                .iter()
-                .zip(old_x.iter())
-                .map(|(a, b)| (a - b).powi(2))
-                .sum();
-            if change < 1e-14 {
-                break;
-            }
-        }
-
-        x
+            add_regularization(&mut value, maybe_grad, x, &last, norm_delta);
+            value
+        })
     }
 
     fn opt_dof(&self) -> usize {
@@ -255,8 +319,8 @@ impl Optimizer for PositionOptimizer {
     fn set_joint_limit(&mut self, limits: &[(f64, f64)]) {
         for (i, &(lo, hi)) in limits.iter().enumerate() {
             if i < self.data.opt_dof {
-                self.data.joint_lower[i] = lo;
-                self.data.joint_upper[i] = hi;
+                self.data.joint_lower[i] = lo - 1e-3;
+                self.data.joint_upper[i] = hi + 1e-3;
             }
         }
     }
@@ -377,39 +441,40 @@ impl Optimizer for VectorOptimizer {
                 .min(self.data.joint_upper[i]);
         }
 
-        let lr = 0.1;
-        let max_iter = 300;
+        let idx_fixed = self.data.idx_pin2fixed.clone();
+        let idx_target = self.data.idx_pin2target.clone();
+        let bounds: Vec<(f64, f64)> = self
+            .data
+            .joint_lower
+            .iter()
+            .copied()
+            .zip(self.data.joint_upper.iter().copied())
+            .collect();
+        let origin_link_indices = self.origin_link_indices.clone();
+        let task_link_indices = self.task_link_indices.clone();
+        let computed_link_indices = self.computed_link_indices.clone();
+        let adaptor = self.data.adaptor.clone();
+        let fixed = fixed_qpos.to_vec();
+        let last = last_qpos.to_vec();
+        let huber_delta = self.huber_delta;
+        let norm_delta = self.norm_delta;
+        let robot_cell = RefCell::new(&mut self.data.robot);
 
-        for _iter in 0..max_iter {
-            let mut qpos = vec![0.0; ndof];
-            for (i, &fi) in self.data.idx_pin2fixed.iter().enumerate() {
-                if i < fixed_qpos.len() {
-                    qpos[fi] = fixed_qpos[i];
-                }
-            }
-            for (i, &ti) in self.data.idx_pin2target.iter().enumerate() {
-                qpos[ti] = x[i];
-            }
-
-            if let Some(ref adaptor) = self.data.adaptor {
-                adaptor.forward_qpos(&mut qpos);
-            }
-
-            self.data.robot.compute_forward_kinematics(&qpos);
-
-            let body_pos: Vec<[f64; 3]> = self
-                .computed_link_indices
+        slsqp_solve(&x, &bounds, 1e-6, 500, |x, gradient, _| {
+            let mut robot = robot_cell.borrow_mut();
+            let qpos = make_qpos(ndof, &idx_fixed, &fixed, &idx_target, x, adaptor.as_ref());
+            robot.compute_forward_kinematics(&qpos);
+            let body_pos: Vec<[f64; 3]> = computed_link_indices
                 .iter()
                 .map(|&li| {
-                    let p = self.data.robot.get_link_pose(li);
+                    let p = robot.get_link_pose(li);
                     [p[(0, 3)], p[(1, 3)], p[(2, 3)]]
                 })
                 .collect();
-
             let robot_vecs: Vec<[f64; 3]> = (0..n_vecs)
                 .map(|i| {
-                    let oi = self.origin_link_indices[i];
-                    let ti = self.task_link_indices[i];
+                    let oi = origin_link_indices[i];
+                    let ti = task_link_indices[i];
                     [
                         body_pos[ti][0] - body_pos[oi][0],
                         body_pos[ti][1] - body_pos[oi][1],
@@ -417,93 +482,57 @@ impl Optimizer for VectorOptimizer {
                     ]
                 })
                 .collect();
-
-            let mut vec_grads: Vec<[f64; 3]> = vec![[0.0; 3]; n_vecs];
+            let mut value = 0.0;
+            let mut maybe_grad = gradient;
+            if let Some(g) = maybe_grad.as_deref_mut() {
+                g.fill(0.0);
+            }
+            let mut vec_grads = vec![[0.0_f64; 3]; n_vecs];
             for i in 0..n_vecs {
-                let dist = ((robot_vecs[i][0] - target_vecs[i][0]).powi(2)
-                    + (robot_vecs[i][1] - target_vecs[i][1]).powi(2)
-                    + (robot_vecs[i][2] - target_vecs[i][2]).powi(2))
-                .sqrt();
-                let d = huber_loss_grad(dist, self.huber_delta);
-                if dist > 1e-12 {
+                let diff = [
+                    robot_vecs[i][0] - target_vecs[i][0],
+                    robot_vecs[i][1] - target_vecs[i][1],
+                    robot_vecs[i][2] - target_vecs[i][2],
+                ];
+                let dist = (diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]).sqrt();
+                value += huber_loss(dist, huber_delta) / (n_vecs as f64);
+                if maybe_grad.is_some() && dist > 1e-12 {
+                    let dloss = huber_loss_grad(dist, huber_delta) / (n_vecs as f64);
                     for dd in 0..3 {
-                        vec_grads[i][dd] = d * (robot_vecs[i][dd] - target_vecs[i][dd]) / dist;
+                        vec_grads[i][dd] = dloss * diff[dd] / dist;
                     }
                 }
             }
-
-            let mut grad = vec![0.0; opt_dof];
-
-            for (ci, &link_idx) in self.computed_link_indices.iter().enumerate() {
-                let pose = self.data.robot.get_link_pose(link_idx);
-                let link_rot = pose.fixed_view::<3, 3>(0, 0);
-                let jac_full = self
-                    .data
-                    .robot
-                    .compute_single_link_local_jacobian(&qpos, link_idx);
-                let world_jac_3 = &jac_full.rows(0, 3);
-                let link_rot_dm = DMatrix::from_iterator(3, 3, link_rot.iter().cloned());
-                let kin_jac = &link_rot_dm * world_jac_3;
-
-                let jac_target = if let Some(ref adaptor) = self.data.adaptor {
-                    adaptor.backward_jacobian(&kin_jac)
-                } else {
-                    let mut sel = DMatrix::zeros(3, opt_dof);
-                    for (col, &idx) in self.data.idx_pin2target.iter().enumerate() {
-                        for row in 0..3 {
-                            sel[(row, col)] = kin_jac[(row, idx)];
+            if let Some(g) = maybe_grad.as_deref_mut() {
+                for (ci, &link_idx) in computed_link_indices.iter().enumerate() {
+                    let jac_full = robot.compute_single_link_local_jacobian(&qpos, link_idx);
+                    let jac_target =
+                        target_jacobian(&jac_full, opt_dof, &idx_target, adaptor.as_ref());
+                    let mut link_grad = [0.0_f64; 3];
+                    for i in 0..n_vecs {
+                        let mut coeff = 0.0;
+                        if origin_link_indices[i] == ci {
+                            coeff -= 1.0;
+                        }
+                        if task_link_indices[i] == ci {
+                            coeff += 1.0;
+                        }
+                        if coeff != 0.0 {
+                            for d in 0..3 {
+                                link_grad[d] += coeff * vec_grads[i][d];
+                            }
                         }
                     }
-                    sel
-                };
-
-                let mut link_grad = [0.0_f64; 3];
-                for i in 0..n_vecs {
-                    let mut coeff = 0.0;
-                    if self.origin_link_indices[i] == ci {
-                        coeff -= 1.0;
-                    }
-                    if self.task_link_indices[i] == ci {
-                        coeff += 1.0;
-                    }
-                    if coeff != 0.0 {
+                    for j in 0..opt_dof {
                         for d in 0..3 {
-                            link_grad[d] += coeff * vec_grads[i][d] / (n_vecs as f64);
+                            g[j] += link_grad[d] * jac_target[(d, j)];
                         }
                     }
                 }
-
-                for j in 0..opt_dof {
-                    for d in 0..3 {
-                        grad[j] += link_grad[d] * jac_target[(d, j)];
-                    }
-                }
             }
-
-            for j in 0..opt_dof {
-                grad[j] +=
-                    2.0 * self.norm_delta * (x[j] - last_qpos.get(j).copied().unwrap_or(0.0));
-            }
-
-            let old_x = x.clone();
-            for j in 0..opt_dof {
-                x[j] -= lr * grad[j];
-                x[j] = x[j]
-                    .max(self.data.joint_lower[j])
-                    .min(self.data.joint_upper[j]);
-            }
-
-            let change: f64 = x
-                .iter()
-                .zip(old_x.iter())
-                .map(|(a, b)| (a - b).powi(2))
-                .sum();
-            if change < 1e-14 {
-                break;
-            }
-        }
-
-        x
+            add_regularization(&mut value, maybe_grad, x, &last, norm_delta);
+            value
+        })
     }
 
     fn opt_dof(&self) -> usize {
@@ -519,8 +548,8 @@ impl Optimizer for VectorOptimizer {
     fn set_joint_limit(&mut self, limits: &[(f64, f64)]) {
         for (i, &(lo, hi)) in limits.iter().enumerate() {
             if i < self.data.opt_dof {
-                self.data.joint_lower[i] = lo;
-                self.data.joint_upper[i] = hi;
+                self.data.joint_lower[i] = lo - 1e-3;
+                self.data.joint_upper[i] = hi + 1e-3;
             }
         }
     }
@@ -797,37 +826,40 @@ impl Optimizer for DexPilotOptimizer {
                 .min(self.data.joint_upper[i]);
         }
 
-        let lr = 0.05;
-        let max_iter = 300;
+        let idx_fixed = self.data.idx_pin2fixed.clone();
+        let idx_target = self.data.idx_pin2target.clone();
+        let bounds: Vec<(f64, f64)> = self
+            .data
+            .joint_lower
+            .iter()
+            .copied()
+            .zip(self.data.joint_upper.iter().copied())
+            .collect();
+        let origin_link_indices = self.origin_link_indices.clone();
+        let task_link_indices = self.task_link_indices.clone();
+        let computed_link_indices = self.computed_link_indices.clone();
+        let adaptor = self.data.adaptor.clone();
+        let fixed = fixed_qpos.to_vec();
+        let last = last_qpos.to_vec();
+        let huber_delta = self.huber_delta;
+        let norm_delta = self.norm_delta;
+        let robot_cell = RefCell::new(&mut self.data.robot);
 
-        for _iter in 0..max_iter {
-            let mut qpos = vec![0.0; ndof];
-            for (i, &fi) in self.data.idx_pin2fixed.iter().enumerate() {
-                if i < fixed_qpos.len() {
-                    qpos[fi] = fixed_qpos[i];
-                }
-            }
-            for (i, &ti) in self.data.idx_pin2target.iter().enumerate() {
-                qpos[ti] = x[i];
-            }
-            if let Some(ref adaptor) = self.data.adaptor {
-                adaptor.forward_qpos(&mut qpos);
-            }
-            self.data.robot.compute_forward_kinematics(&qpos);
-
-            let body_pos: Vec<[f64; 3]> = self
-                .computed_link_indices
+        slsqp_solve(&x, &bounds, 1e-6, 500, |x, gradient, _| {
+            let mut robot = robot_cell.borrow_mut();
+            let qpos = make_qpos(ndof, &idx_fixed, &fixed, &idx_target, x, adaptor.as_ref());
+            robot.compute_forward_kinematics(&qpos);
+            let body_pos: Vec<[f64; 3]> = computed_link_indices
                 .iter()
                 .map(|&li| {
-                    let p = self.data.robot.get_link_pose(li);
+                    let p = robot.get_link_pose(li);
                     [p[(0, 3)], p[(1, 3)], p[(2, 3)]]
                 })
                 .collect();
-
             let robot_vecs: Vec<[f64; 3]> = (0..n_vecs)
                 .map(|i| {
-                    let oi = self.origin_link_indices[i];
-                    let ti = self.task_link_indices[i];
+                    let oi = origin_link_indices[i];
+                    let ti = task_link_indices[i];
                     [
                         body_pos[ti][0] - body_pos[oi][0],
                         body_pos[ti][1] - body_pos[oi][1],
@@ -835,88 +867,57 @@ impl Optimizer for DexPilotOptimizer {
                     ]
                 })
                 .collect();
-
-            let mut vec_grads: Vec<[f64; 3]> = vec![[0.0; 3]; n_vecs];
+            let mut value = 0.0;
+            let mut maybe_grad = gradient;
+            if let Some(g) = maybe_grad.as_deref_mut() {
+                g.fill(0.0);
+            }
+            let mut vec_grads = vec![[0.0_f64; 3]; n_vecs];
             for i in 0..n_vecs {
-                let dist = ((robot_vecs[i][0] - reference_vec[i][0]).powi(2)
-                    + (robot_vecs[i][1] - reference_vec[i][1]).powi(2)
-                    + (robot_vecs[i][2] - reference_vec[i][2]).powi(2))
-                .sqrt();
-                let d = weight[i] * huber_loss_grad(dist, self.huber_delta) / (n_vecs as f64);
-                if dist > 1e-12 {
+                let diff = [
+                    robot_vecs[i][0] - reference_vec[i][0],
+                    robot_vecs[i][1] - reference_vec[i][1],
+                    robot_vecs[i][2] - reference_vec[i][2],
+                ];
+                let dist = (diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]).sqrt();
+                value += weight[i] * huber_loss(dist, huber_delta) / (n_vecs as f64);
+                if maybe_grad.is_some() && dist > 1e-12 {
+                    let dloss = weight[i] * huber_loss_grad(dist, huber_delta) / (n_vecs as f64);
                     for dd in 0..3 {
-                        vec_grads[i][dd] = d * (robot_vecs[i][dd] - reference_vec[i][dd]) / dist;
+                        vec_grads[i][dd] = dloss * diff[dd] / dist;
                     }
                 }
             }
-
-            let mut grad = vec![0.0; opt_dof];
-            for (ci, &link_idx) in self.computed_link_indices.iter().enumerate() {
-                let pose = self.data.robot.get_link_pose(link_idx);
-                let link_rot = pose.fixed_view::<3, 3>(0, 0);
-                let jac_full = self
-                    .data
-                    .robot
-                    .compute_single_link_local_jacobian(&qpos, link_idx);
-                let world_jac_3 = &jac_full.rows(0, 3);
-                let link_rot_dm = DMatrix::from_iterator(3, 3, link_rot.iter().cloned());
-                let kin_jac = &link_rot_dm * world_jac_3;
-
-                let jac_target = if let Some(ref adaptor) = self.data.adaptor {
-                    adaptor.backward_jacobian(&kin_jac)
-                } else {
-                    let mut sel = DMatrix::zeros(3, opt_dof);
-                    for (col, &idx) in self.data.idx_pin2target.iter().enumerate() {
-                        for row in 0..3 {
-                            sel[(row, col)] = kin_jac[(row, idx)];
+            if let Some(g) = maybe_grad.as_deref_mut() {
+                for (ci, &link_idx) in computed_link_indices.iter().enumerate() {
+                    let jac_full = robot.compute_single_link_local_jacobian(&qpos, link_idx);
+                    let jac_target =
+                        target_jacobian(&jac_full, opt_dof, &idx_target, adaptor.as_ref());
+                    let mut link_grad = [0.0_f64; 3];
+                    for i in 0..n_vecs {
+                        let mut coeff = 0.0;
+                        if origin_link_indices[i] == ci {
+                            coeff -= 1.0;
+                        }
+                        if task_link_indices[i] == ci {
+                            coeff += 1.0;
+                        }
+                        if coeff != 0.0 {
+                            for d in 0..3 {
+                                link_grad[d] += coeff * vec_grads[i][d];
+                            }
                         }
                     }
-                    sel
-                };
-
-                let mut link_grad = [0.0_f64; 3];
-                for i in 0..n_vecs {
-                    let mut coeff = 0.0;
-                    if self.origin_link_indices[i] == ci {
-                        coeff -= 1.0;
-                    }
-                    if self.task_link_indices[i] == ci {
-                        coeff += 1.0;
-                    }
-                    if coeff != 0.0 {
+                    for j in 0..opt_dof {
                         for d in 0..3 {
-                            link_grad[d] += coeff * vec_grads[i][d];
+                            g[j] += link_grad[d] * jac_target[(d, j)];
                         }
                     }
                 }
-                for j in 0..opt_dof {
-                    for d in 0..3 {
-                        grad[j] += link_grad[d] * jac_target[(d, j)];
-                    }
-                }
             }
-            for j in 0..opt_dof {
-                grad[j] +=
-                    2.0 * self.norm_delta * (x[j] - last_qpos.get(j).copied().unwrap_or(0.0));
-            }
-
-            let old_x = x.clone();
-            for j in 0..opt_dof {
-                x[j] -= lr * grad[j];
-                x[j] = x[j]
-                    .max(self.data.joint_lower[j])
-                    .min(self.data.joint_upper[j]);
-            }
-            let change: f64 = x
-                .iter()
-                .zip(old_x.iter())
-                .map(|(a, b)| (a - b).powi(2))
-                .sum();
-            if change < 1e-14 {
-                break;
-            }
-        }
-        x
+            add_regularization(&mut value, maybe_grad, x, &last, norm_delta);
+            value
+        })
     }
 
     fn opt_dof(&self) -> usize {
@@ -932,8 +933,8 @@ impl Optimizer for DexPilotOptimizer {
     fn set_joint_limit(&mut self, limits: &[(f64, f64)]) {
         for (i, &(lo, hi)) in limits.iter().enumerate() {
             if i < self.data.opt_dof {
-                self.data.joint_lower[i] = lo;
-                self.data.joint_upper[i] = hi;
+                self.data.joint_lower[i] = lo - 1e-3;
+                self.data.joint_upper[i] = hi + 1e-3;
             }
         }
     }

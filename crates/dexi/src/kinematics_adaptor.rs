@@ -1,6 +1,7 @@
 //! Kinematics adaptor: mimic joint handling.
 
 /// Mimic joint kinematic adaptor.
+#[derive(Clone)]
 pub struct MimicJointKinematicAdaptor {
     /// Joint indices of source joints in the full DOF list
     pub idx_pin2source: Vec<usize>,

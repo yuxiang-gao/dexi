@@ -39,6 +39,7 @@ dependencies = [
  "roxmltree",
  "serde",
  "serde_yaml",
+ "slsqp",
  "thiserror",
 ]
 
@@ -448,6 +449,15 @@ dependencies = [
  "num-traits",
  "paste",
  "wide",
+]
+
+[[package]]
+name = "slsqp"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd273530124c09a4cec5e5d047811a96742b9956a7ff7be11dc5392ef0d6c8aa"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

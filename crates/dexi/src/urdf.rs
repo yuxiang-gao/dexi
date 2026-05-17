@@ -74,10 +74,13 @@ fn parse_rpy(s: &str) -> (f64, f64, f64) {
     }
 }
 
-/// Build a 4x4 transform from xyz and rpy using intrinsic XYZ Euler angles.
+/// Build a 4x4 transform from xyz and URDF roll-pitch-yaw angles.
+///
+/// URDF defines fixed-axis RPY as `R = Rz(yaw) * Ry(pitch) * Rx(roll)`.
+/// This matches Pinocchio / urdfdom parsing and is the convention used by the
+/// Python reference implementation.
 pub fn transform_from_xyz_rpy(xyz: Vector3<f64>, rpy: (f64, f64, f64)) -> Matrix4<f64> {
     let (r, p, y) = rpy;
-    // Intrinsic rotations: R = Rz(y) * Ry(p) * Rx(r)
     let cr = r.cos();
     let sr = r.sin();
     let cp = p.cos();
@@ -86,14 +89,14 @@ pub fn transform_from_xyz_rpy(xyz: Vector3<f64>, rpy: (f64, f64, f64)) -> Matrix
     let sy = y.sin();
 
     let mut m = Matrix4::identity();
-    m[(0, 0)] = cp * cy;
-    m[(0, 1)] = cr * sy + sr * sp * cy;
-    m[(0, 2)] = sr * sy - cr * sp * cy;
-    m[(1, 0)] = -cp * sy;
-    m[(1, 1)] = cr * cy - sr * sp * sy;
-    m[(1, 2)] = sr * cy + cr * sp * sy;
-    m[(2, 0)] = sp;
-    m[(2, 1)] = -sr * cp;
+    m[(0, 0)] = cy * cp;
+    m[(0, 1)] = cy * sp * sr - sy * cr;
+    m[(0, 2)] = cy * sp * cr + sy * sr;
+    m[(1, 0)] = sy * cp;
+    m[(1, 1)] = sy * sp * sr + cy * cr;
+    m[(1, 2)] = sy * sp * cr - cy * sr;
+    m[(2, 0)] = -sp;
+    m[(2, 1)] = cp * sr;
     m[(2, 2)] = cr * cp;
     m[(0, 3)] = xyz[0];
     m[(1, 3)] = xyz[1];

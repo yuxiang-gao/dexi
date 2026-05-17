@@ -38,10 +38,10 @@
   <div class="cards">
     <div class="card"><div class="label">Compared</div><div class="value">39/39</div></div>
     <div class="card"><div class="label">Runtime errors</div><div class="value">0</div></div>
-    <div class="card"><div class="label">Max mean abs</div><div class="value">1.6614</div></div>
-    <div class="card"><div class="label">Max abs</div><div class="value">5.1244</div></div>
+    <div class="card"><div class="label">Max mean abs</div><div class="value">0.0184</div></div>
+    <div class="card"><div class="label">Max abs</div><div class="value">0.0552</div></div>
   </div>
-  <div class="callout"><strong>Interpretation:</strong> API and coverage parity are in place, and all 39 configs complete without runtime failure. Numerical parity is not yet close: 37 configs exceed the reporting thresholds of mean ≤ 0.05 and max ≤ 0.5.</div>
+  <div class="callout"><strong>Interpretation:</strong> API and coverage parity are in place, and all 39 configs complete without runtime failure. Numerical parity is not yet close: 0 configs exceed the reporting thresholds of mean ≤ 0.05 and max ≤ 0.5.</div>
 
   <h2>Visual summary</h2>
   <div class="grid">
@@ -51,63 +51,63 @@
 <text x="28" y="64" fill="#94a3b8" font-size="13">Longer bars indicate larger Python-vs-Rust numerical drift.</text>
 <text x="28" y="125" fill="#cbd5e1" font-size="15">dexpilot</text>
 <rect x="150" y="104" width="700" height="28" rx="14" fill="#1e293b"/>
-<rect x="150" y="104" width="700.00" height="28" rx="14" fill="#ea580c"/>
-<text x="860.00" y="124" fill="#f8fafc" font-size="14">1.6614</text>
+<rect x="150" y="104" width="207.46" height="28" rx="14" fill="#ea580c"/>
+<text x="367.46" y="124" fill="#f8fafc" font-size="14">0.0054</text>
 <text x="775" y="124" fill="#94a3b8" font-size="13">n=13</text>
 <text x="28" y="183" fill="#cbd5e1" font-size="15">position</text>
 <rect x="150" y="162" width="700" height="28" rx="14" fill="#1e293b"/>
-<rect x="150" y="162" width="593.46" height="28" rx="14" fill="#7c3aed"/>
-<text x="753.46" y="182" fill="#f8fafc" font-size="14">1.4085</text>
+<rect x="150" y="162" width="418.68" height="28" rx="14" fill="#7c3aed"/>
+<text x="578.68" y="182" fill="#f8fafc" font-size="14">0.011</text>
 <text x="775" y="182" fill="#94a3b8" font-size="13">n=13</text>
 <text x="28" y="241" fill="#cbd5e1" font-size="15">vector</text>
 <rect x="150" y="220" width="700" height="28" rx="14" fill="#1e293b"/>
-<rect x="150" y="220" width="491.45" height="28" rx="14" fill="#0891b2"/>
-<text x="651.45" y="240" fill="#f8fafc" font-size="14">1.1664</text>
+<rect x="150" y="220" width="700.00" height="28" rx="14" fill="#0891b2"/>
+<text x="860.00" y="240" fill="#f8fafc" font-size="14">0.0184</text>
 <text x="775" y="240" fill="#94a3b8" font-size="13">n=13</text>
 </svg>
     <svg class="viz" viewBox="0 0 920 178" role="img" aria-label="Configuration drift heatmap">
 <rect width="100%" height="100%" rx="18" fill="#fff7ed"/>
 <text x="28" y="38" fill="#7c2d12" font-size="22" font-weight="700">Per-config qualitative drift image</text>
 <text x="28" y="64" fill="#9a3412" font-size="13">Each square is one config: green=within threshold, amber=near, red=large drift.</text>
-<rect x="28" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>ability_hand_right dexpilot: mean=1.6614, max=3.7053</title></rect>
-<rect x="50" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>inspire_hand_right position: mean=1.4085, max=4.9904</title></rect>
-<rect x="72" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>ability_hand_right position: mean=1.3862, max=5.0095</title></rect>
-<rect x="94" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>leap_hand_left vector: mean=1.1664, max=3.2928</title></rect>
-<rect x="116" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>ability_hand_left vector: mean=1.1354, max=2.682</title></rect>
-<rect x="138" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>inspire_hand_left position: mean=1.107, max=4.9679</title></rect>
-<rect x="160" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>leap_hand_left position: mean=1.083, max=4.9969</title></rect>
-<rect x="182" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>ability_hand_right vector: mean=1.0705, max=3.0753</title></rect>
-<rect x="204" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>ability_hand_left dexpilot: mean=1.0691, max=2.615</title></rect>
-<rect x="226" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>leap_hand_right dexpilot: mean=0.9836, max=2.6294</title></rect>
-<rect x="248" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>leap_hand_left dexpilot: mean=0.9818, max=3.6126</title></rect>
-<rect x="270" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>leap_hand_right vector: mean=0.9161, max=2.2162</title></rect>
-<rect x="292" y="88" width="18" height="18" rx="5" fill="#dc2626"><title>schunk_svh_hand_left position: mean=0.9148, max=5.0609</title></rect>
-<rect x="28" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>schunk_svh_hand_left vector: mean=0.9047, max=1.9562</title></rect>
-<rect x="50" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>allegro_hand_right position: mean=0.8182, max=5.0299</title></rect>
-<rect x="72" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>schunk_svh_hand_right vector: mean=0.7859, max=1.3003</title></rect>
-<rect x="94" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>schunk_svh_hand_right dexpilot: mean=0.7507, max=1.3376</title></rect>
-<rect x="116" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>inspire_hand_right vector: mean=0.7424, max=1.1948</title></rect>
-<rect x="138" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>inspire_hand_left dexpilot: mean=0.7336, max=1.294</title></rect>
-<rect x="160" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>schunk_svh_hand_left dexpilot: mean=0.7246, max=1.5573</title></rect>
-<rect x="182" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>inspire_hand_right dexpilot: mean=0.7234, max=1.3121</title></rect>
-<rect x="204" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>inspire_hand_left vector: mean=0.7059, max=1.1819</title></rect>
-<rect x="226" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>allegro_hand_left dexpilot: mean=0.688, max=1.2558</title></rect>
-<rect x="248" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>shadow_hand_right dexpilot: mean=0.6437, max=1.524</title></rect>
-<rect x="270" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>shadow_hand_left position: mean=0.6428, max=4.8943</title></rect>
-<rect x="292" y="110" width="18" height="18" rx="5" fill="#dc2626"><title>ability_hand_left position: mean=0.6312, max=2.4257</title></rect>
-<rect x="28" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>leap_hand_right position: mean=0.6199, max=4.6441</title></rect>
-<rect x="50" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>shadow_hand_right position: mean=0.6135, max=5.1244</title></rect>
-<rect x="72" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>allegro_hand_left vector: mean=0.5627, max=1.3707</title></rect>
-<rect x="94" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>shadow_hand_left dexpilot: mean=0.5026, max=1.7319</title></rect>
-<rect x="116" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>allegro_hand_right vector: mean=0.4993, max=1.2148</title></rect>
-<rect x="138" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>shadow_hand_right vector: mean=0.4693, max=0.9429</title></rect>
-<rect x="160" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>allegro_hand_right dexpilot: mean=0.4508, max=1.3412</title></rect>
-<rect x="182" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>shadow_hand_left vector: mean=0.4162, max=1.1391</title></rect>
-<rect x="204" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>allegro_hand_left position: mean=0.4098, max=2.3778</title></rect>
-<rect x="226" y="132" width="18" height="18" rx="5" fill="#dc2626"><title>schunk_svh_hand_right position: mean=0.2962, max=1.256</title></rect>
-<rect x="248" y="132" width="18" height="18" rx="5" fill="#f59e0b"><title>panda_gripper position: mean=0.0775, max=0.4868</title></rect>
-<rect x="270" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>panda_gripper vector: mean=0.001, max=0.001</title></rect>
-<rect x="292" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>panda_gripper dexpilot: mean=4.4179e-08, max=4.4179e-08</title></rect>
+<rect x="28" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>ability_hand_left vector: mean=0.0184, max=0.03</title></rect>
+<rect x="50" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>schunk_svh_hand_right vector: mean=0.0154, max=0.0495</title></rect>
+<rect x="72" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>ability_hand_right vector: mean=0.0131, max=0.0552</title></rect>
+<rect x="94" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>schunk_svh_hand_left position: mean=0.011, max=0.0375</title></rect>
+<rect x="116" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>allegro_hand_left dexpilot: mean=0.0054, max=0.017</title></rect>
+<rect x="138" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>schunk_svh_hand_right position: mean=0.0042, max=0.0206</title></rect>
+<rect x="160" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>inspire_hand_left vector: mean=0.0027, max=0.0225</title></rect>
+<rect x="182" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>ability_hand_left dexpilot: mean=0.002, max=0.0105</title></rect>
+<rect x="204" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>inspire_hand_right vector: mean=0.002, max=0.0043</title></rect>
+<rect x="226" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>allegro_hand_left vector: mean=0.0016, max=0.0042</title></rect>
+<rect x="248" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>leap_hand_left vector: mean=0.0016, max=0.0048</title></rect>
+<rect x="270" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>allegro_hand_right vector: mean=0.0012, max=0.0045</title></rect>
+<rect x="292" y="88" width="18" height="18" rx="5" fill="#16a34a"><title>ability_hand_left position: mean=9.3358e-04, max=0.0026</title></rect>
+<rect x="28" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>allegro_hand_right position: mean=5.9888e-04, max=0.0017</title></rect>
+<rect x="50" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>schunk_svh_hand_right dexpilot: mean=5.3141e-04, max=0.0019</title></rect>
+<rect x="72" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>leap_hand_left dexpilot: mean=4.4327e-04, max=0.0018</title></rect>
+<rect x="94" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>inspire_hand_right dexpilot: mean=4.4214e-04, max=0.0011</title></rect>
+<rect x="116" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>ability_hand_right dexpilot: mean=4.0280e-04, max=6.3396e-04</title></rect>
+<rect x="138" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>shadow_hand_right position: mean=3.4705e-04, max=0.0014</title></rect>
+<rect x="160" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>schunk_svh_hand_left dexpilot: mean=3.4074e-04, max=7.6639e-04</title></rect>
+<rect x="182" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>leap_hand_left position: mean=3.1360e-04, max=0.0011</title></rect>
+<rect x="204" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>panda_gripper position: mean=2.6106e-04, max=0.0016</title></rect>
+<rect x="226" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>shadow_hand_left position: mean=2.4777e-04, max=0.0017</title></rect>
+<rect x="248" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>shadow_hand_left dexpilot: mean=2.4370e-04, max=0.0015</title></rect>
+<rect x="270" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>inspire_hand_left dexpilot: mean=2.0887e-04, max=5.9217e-04</title></rect>
+<rect x="292" y="110" width="18" height="18" rx="5" fill="#16a34a"><title>shadow_hand_left vector: mean=1.9590e-04, max=6.4580e-04</title></rect>
+<rect x="28" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>leap_hand_right dexpilot: mean=1.5283e-04, max=3.8332e-04</title></rect>
+<rect x="50" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>allegro_hand_left position: mean=1.4016e-04, max=4.8227e-04</title></rect>
+<rect x="72" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>shadow_hand_right dexpilot: mean=1.0008e-04, max=3.7147e-04</title></rect>
+<rect x="94" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>inspire_hand_left position: mean=9.0501e-05, max=2.1283e-04</title></rect>
+<rect x="116" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>ability_hand_right position: mean=7.9886e-05, max=2.4638e-04</title></rect>
+<rect x="138" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>leap_hand_right position: mean=1.6926e-05, max=3.8120e-05</title></rect>
+<rect x="160" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>inspire_hand_right position: mean=2.3255e-06, max=9.6288e-06</title></rect>
+<rect x="182" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>shadow_hand_right vector: mean=3.2765e-08, max=1.2010e-07</title></rect>
+<rect x="204" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>schunk_svh_hand_left vector: mean=3.0511e-08, max=6.7351e-08</title></rect>
+<rect x="226" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>allegro_hand_right dexpilot: mean=2.8118e-08, max=5.1455e-08</title></rect>
+<rect x="248" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>leap_hand_right vector: mean=2.1298e-08, max=5.4534e-08</title></rect>
+<rect x="270" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>panda_gripper vector: mean=4.6134e-10, max=4.6134e-10</title></rect>
+<rect x="292" y="132" width="18" height="18" rx="5" fill="#16a34a"><title>panda_gripper dexpilot: mean=2.8806e-12, max=2.8806e-12</title></rect>
 <text x="360" y="150" fill="#166534" font-size="13">■ within</text>
 <text x="455" y="150" fill="#92400e" font-size="13">■ near</text>
 <text x="535" y="150" fill="#991b1b" font-size="13">■ large drift</text>
@@ -149,53 +149,53 @@
   <h2>Aggregate table</h2>
   <table>
     <thead><tr><th>Type</th><th>Configs</th><th>Average mean abs</th><th>Worst mean abs</th><th>Worst max abs</th></tr></thead>
-    <tbody><tr><td>dexpilot</td><td>13</td><td>0.7626</td><td>1.6614</td><td>3.7053</td></tr>
-<tr><td>position</td><td>13</td><td>0.7699</td><td>1.4085</td><td>5.1244</td></tr>
-<tr><td>vector</td><td>13</td><td>0.7212</td><td>1.1664</td><td>3.2928</td></tr></tbody>
+    <tbody><tr><td>dexpilot</td><td>13</td><td>7.9540e-04</td><td>0.0054</td><td>0.017</td></tr>
+<tr><td>position</td><td>13</td><td>0.0014</td><td>0.011</td><td>0.0375</td></tr>
+<tr><td>vector</td><td>13</td><td>0.0043</td><td>0.0184</td><td>0.0552</td></tr></tbody>
   </table>
 
   <h2>Per-config comparison table</h2>
   <table>
     <thead><tr><th>Config</th><th>Type</th><th>Hand</th><th>DOF</th><th>Fixed DOF</th><th>Mean abs</th><th>Max abs</th><th>RMS</th><th>Qualitative</th></tr></thead>
-    <tbody><tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>ability_hand_left</td><td>10</td><td>0</td><td>1.069086</td><td>2.614983</td><td>1.389252</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>ability_hand_right</td><td>10</td><td>0</td><td>1.66135</td><td>3.705296</td><td>1.835278</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>allegro_hand_left</td><td>16</td><td>0</td><td>0.68797</td><td>1.255809</td><td>0.790731</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>allegro_hand_right</td><td>16</td><td>0</td><td>0.450798</td><td>1.341174</td><td>0.627362</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>inspire_hand_left</td><td>12</td><td>0</td><td>0.733625</td><td>1.293977</td><td>0.840283</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>inspire_hand_right</td><td>12</td><td>0</td><td>0.723428</td><td>1.312132</td><td>0.849252</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>leap_hand_left</td><td>16</td><td>0</td><td>0.981815</td><td>3.612582</td><td>1.392436</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>leap_hand_right</td><td>16</td><td>0</td><td>0.983649</td><td>2.629439</td><td>1.139077</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper_dexpilot.yml</code></td><td>dexpilot</td><td>panda_gripper</td><td>2</td><td>0</td><td>4.417914e-08</td><td>4.417914e-08</td><td>4.417914e-08</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>schunk_svh_hand_left</td><td>20</td><td>0</td><td>0.724615</td><td>1.557326</td><td>0.876033</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>schunk_svh_hand_right</td><td>20</td><td>0</td><td>0.750732</td><td>1.337641</td><td>0.834745</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>shadow_hand_left</td><td>24</td><td>0</td><td>0.502621</td><td>1.731917</td><td>0.680227</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>shadow_hand_right</td><td>24</td><td>0</td><td>0.643733</td><td>1.523971</td><td>0.796283</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_left.yml</code></td><td>position</td><td>ability_hand_left</td><td>16</td><td>0</td><td>0.631158</td><td>2.42569</td><td>0.922857</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_right.yml</code></td><td>position</td><td>ability_hand_right</td><td>16</td><td>0</td><td>1.386214</td><td>5.00948</td><td>2.043214</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_left.yml</code></td><td>position</td><td>allegro_hand_left</td><td>22</td><td>0</td><td>0.409797</td><td>2.377839</td><td>0.68514</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_right.yml</code></td><td>position</td><td>allegro_hand_right</td><td>22</td><td>0</td><td>0.818209</td><td>5.02995</td><td>1.578304</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_left.yml</code></td><td>position</td><td>inspire_hand_left</td><td>18</td><td>0</td><td>1.106959</td><td>4.967902</td><td>1.965909</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_right.yml</code></td><td>position</td><td>inspire_hand_right</td><td>18</td><td>0</td><td>1.408488</td><td>4.990446</td><td>2.237391</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_left.yml</code></td><td>position</td><td>leap_hand_left</td><td>22</td><td>0</td><td>1.083049</td><td>4.996894</td><td>1.706309</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_right.yml</code></td><td>position</td><td>leap_hand_right</td><td>22</td><td>0</td><td>0.619874</td><td>4.6441</td><td>1.147928</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/panda_gripper.yml</code></td><td>position</td><td>panda_gripper</td><td>8</td><td>0</td><td>0.077469</td><td>0.48678</td><td>0.173903</td><td><span class="pill warn">warn</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_left.yml</code></td><td>position</td><td>schunk_svh_hand_left</td><td>26</td><td>0</td><td>0.914814</td><td>5.060865</td><td>1.538681</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_right.yml</code></td><td>position</td><td>schunk_svh_hand_right</td><td>26</td><td>0</td><td>0.296174</td><td>1.256049</td><td>0.407772</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_left.yml</code></td><td>position</td><td>shadow_hand_left</td><td>30</td><td>0</td><td>0.642762</td><td>4.894265</td><td>1.362968</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_right.yml</code></td><td>position</td><td>shadow_hand_right</td><td>30</td><td>0</td><td>0.613541</td><td>5.124375</td><td>1.354537</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left.yml</code></td><td>vector</td><td>ability_hand_left</td><td>10</td><td>0</td><td>1.135378</td><td>2.68204</td><td>1.328887</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right.yml</code></td><td>vector</td><td>ability_hand_right</td><td>10</td><td>0</td><td>1.070452</td><td>3.075305</td><td>1.478241</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left.yml</code></td><td>vector</td><td>allegro_hand_left</td><td>16</td><td>0</td><td>0.562662</td><td>1.370691</td><td>0.672737</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right.yml</code></td><td>vector</td><td>allegro_hand_right</td><td>16</td><td>0</td><td>0.499346</td><td>1.214835</td><td>0.601367</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left.yml</code></td><td>vector</td><td>inspire_hand_left</td><td>12</td><td>0</td><td>0.705852</td><td>1.181928</td><td>0.838294</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right.yml</code></td><td>vector</td><td>inspire_hand_right</td><td>12</td><td>0</td><td>0.742435</td><td>1.194795</td><td>0.846901</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left.yml</code></td><td>vector</td><td>leap_hand_left</td><td>16</td><td>0</td><td>1.166393</td><td>3.292769</td><td>1.50525</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right.yml</code></td><td>vector</td><td>leap_hand_right</td><td>16</td><td>0</td><td>0.916066</td><td>2.216166</td><td>1.113294</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper.yml</code></td><td>vector</td><td>panda_gripper</td><td>2</td><td>0</td><td>0.001</td><td>0.001</td><td>0.001</td><td><span class="pill pass">pass</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left.yml</code></td><td>vector</td><td>schunk_svh_hand_left</td><td>20</td><td>0</td><td>0.904701</td><td>1.956236</td><td>1.026234</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right.yml</code></td><td>vector</td><td>schunk_svh_hand_right</td><td>20</td><td>0</td><td>0.785877</td><td>1.300311</td><td>0.892694</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left.yml</code></td><td>vector</td><td>shadow_hand_left</td><td>24</td><td>0</td><td>0.416199</td><td>1.139128</td><td>0.507867</td><td><span class="pill drift">drift</span></td></tr>
-<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right.yml</code></td><td>vector</td><td>shadow_hand_right</td><td>24</td><td>0</td><td>0.469296</td><td>0.942937</td><td>0.547698</td><td><span class="pill drift">drift</span></td></tr></tbody>
+    <tbody><tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>ability_hand_left</td><td>10</td><td>0</td><td>0.002026</td><td>0.010536</td><td>0.003722</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>ability_hand_right</td><td>10</td><td>0</td><td>4.027995e-04</td><td>6.339641e-04</td><td>4.654532e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>allegro_hand_left</td><td>16</td><td>0</td><td>0.005448</td><td>0.017004</td><td>0.00725</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>allegro_hand_right</td><td>16</td><td>0</td><td>2.811804e-08</td><td>5.145502e-08</td><td>3.343266e-08</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>inspire_hand_left</td><td>12</td><td>0</td><td>2.088721e-04</td><td>5.921690e-04</td><td>2.717105e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>inspire_hand_right</td><td>12</td><td>0</td><td>4.421366e-04</td><td>0.001109</td><td>5.986068e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>leap_hand_left</td><td>16</td><td>0</td><td>4.432683e-04</td><td>0.001774</td><td>6.367657e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>leap_hand_right</td><td>16</td><td>0</td><td>1.528336e-04</td><td>3.833182e-04</td><td>1.854221e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper_dexpilot.yml</code></td><td>dexpilot</td><td>panda_gripper</td><td>2</td><td>0</td><td>2.880646e-12</td><td>2.880646e-12</td><td>2.880646e-12</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>schunk_svh_hand_left</td><td>20</td><td>0</td><td>3.407441e-04</td><td>7.663851e-04</td><td>4.448497e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>schunk_svh_hand_right</td><td>20</td><td>0</td><td>5.314134e-04</td><td>0.001862</td><td>8.050646e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left_dexpilot.yml</code></td><td>dexpilot</td><td>shadow_hand_left</td><td>24</td><td>0</td><td>2.437045e-04</td><td>0.001485</td><td>3.908505e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right_dexpilot.yml</code></td><td>dexpilot</td><td>shadow_hand_right</td><td>24</td><td>0</td><td>1.000809e-04</td><td>3.714660e-04</td><td>1.430788e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_left.yml</code></td><td>position</td><td>ability_hand_left</td><td>16</td><td>0</td><td>9.335793e-04</td><td>0.002619</td><td>0.001156</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_right.yml</code></td><td>position</td><td>ability_hand_right</td><td>16</td><td>0</td><td>7.988598e-05</td><td>2.463819e-04</td><td>1.133622e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_left.yml</code></td><td>position</td><td>allegro_hand_left</td><td>22</td><td>0</td><td>1.401592e-04</td><td>4.822674e-04</td><td>1.850666e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_right.yml</code></td><td>position</td><td>allegro_hand_right</td><td>22</td><td>0</td><td>5.988822e-04</td><td>0.001687</td><td>7.432601e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_left.yml</code></td><td>position</td><td>inspire_hand_left</td><td>18</td><td>0</td><td>9.050083e-05</td><td>2.128283e-04</td><td>1.109835e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_right.yml</code></td><td>position</td><td>inspire_hand_right</td><td>18</td><td>0</td><td>2.325505e-06</td><td>9.628825e-06</td><td>3.172215e-06</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_left.yml</code></td><td>position</td><td>leap_hand_left</td><td>22</td><td>0</td><td>3.135954e-04</td><td>0.001067</td><td>4.367283e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_right.yml</code></td><td>position</td><td>leap_hand_right</td><td>22</td><td>0</td><td>1.692601e-05</td><td>3.811976e-05</td><td>1.938361e-05</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/panda_gripper.yml</code></td><td>position</td><td>panda_gripper</td><td>8</td><td>0</td><td>2.610582e-04</td><td>0.001568</td><td>5.633596e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_left.yml</code></td><td>position</td><td>schunk_svh_hand_left</td><td>26</td><td>0</td><td>0.010996</td><td>0.037467</td><td>0.015599</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_right.yml</code></td><td>position</td><td>schunk_svh_hand_right</td><td>26</td><td>0</td><td>0.004186</td><td>0.02061</td><td>0.006171</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_left.yml</code></td><td>position</td><td>shadow_hand_left</td><td>30</td><td>0</td><td>2.477706e-04</td><td>0.001747</td><td>4.321042e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_right.yml</code></td><td>position</td><td>shadow_hand_right</td><td>30</td><td>0</td><td>3.470464e-04</td><td>0.001397</td><td>4.905327e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left.yml</code></td><td>vector</td><td>ability_hand_left</td><td>10</td><td>0</td><td>0.018384</td><td>0.030009</td><td>0.019889</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right.yml</code></td><td>vector</td><td>ability_hand_right</td><td>10</td><td>0</td><td>0.013111</td><td>0.055218</td><td>0.020544</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left.yml</code></td><td>vector</td><td>allegro_hand_left</td><td>16</td><td>0</td><td>0.001636</td><td>0.004242</td><td>0.002039</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right.yml</code></td><td>vector</td><td>allegro_hand_right</td><td>16</td><td>0</td><td>0.001225</td><td>0.004461</td><td>0.001693</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left.yml</code></td><td>vector</td><td>inspire_hand_left</td><td>12</td><td>0</td><td>0.002716</td><td>0.022525</td><td>0.006693</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right.yml</code></td><td>vector</td><td>inspire_hand_right</td><td>12</td><td>0</td><td>0.002018</td><td>0.004272</td><td>0.002561</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left.yml</code></td><td>vector</td><td>leap_hand_left</td><td>16</td><td>0</td><td>0.001617</td><td>0.004778</td><td>0.002165</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right.yml</code></td><td>vector</td><td>leap_hand_right</td><td>16</td><td>0</td><td>2.129803e-08</td><td>5.453426e-08</td><td>2.599707e-08</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper.yml</code></td><td>vector</td><td>panda_gripper</td><td>2</td><td>0</td><td>4.613394e-10</td><td>4.613394e-10</td><td>4.613394e-10</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left.yml</code></td><td>vector</td><td>schunk_svh_hand_left</td><td>20</td><td>0</td><td>3.051060e-08</td><td>6.735133e-08</td><td>3.729117e-08</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right.yml</code></td><td>vector</td><td>schunk_svh_hand_right</td><td>20</td><td>0</td><td>0.015353</td><td>0.049469</td><td>0.02055</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left.yml</code></td><td>vector</td><td>shadow_hand_left</td><td>24</td><td>0</td><td>1.958982e-04</td><td>6.458045e-04</td><td>2.641177e-04</td><td><span class="pill pass">pass</span></td></tr>
+<tr><td><code>reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right.yml</code></td><td>vector</td><td>shadow_hand_right</td><td>24</td><td>0</td><td>3.276462e-08</td><td>1.200999e-07</td><td>4.353242e-08</td><td><span class="pill pass">pass</span></td></tr></tbody>
   </table>
 
   <footer>Generated from <code>scripts/compare_python_rust.py</code> output. The Rust path intentionally uses pure Rust kinematics and optimization, so the report records both successful cross-language execution and current numerical drift.</footer>

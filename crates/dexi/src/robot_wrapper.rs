@@ -1,8 +1,8 @@
 //! Robot wrapper: FK and Jacobian computation over the URDF tree.
 
 use crate::urdf::{rotation_from_axis_angle, transform_from_translation, JointSpec, UrdfRobot};
-use nalgebra::{DMatrix, Matrix4};
-use std::collections::HashMap;
+use nalgebra::{DMatrix, Matrix4, Vector3};
+use std::collections::{HashMap, HashSet};
 
 /// Robot wrapper providing forward kinematics and Jacobian computation.
 pub struct RobotWrapper {
@@ -38,12 +38,13 @@ impl RobotWrapper {
         let root_link = urdf.root_link().ok_or("No root link found")?.to_string();
 
         // ALL non-fixed joints (including mimic) are DOF joints
-        let dof_joints: Vec<JointSpec> = urdf
+        let mut dof_joints: Vec<JointSpec> = urdf
             .joints
             .iter()
             .filter(|j| j.joint_type != "fixed")
             .cloned()
             .collect();
+        reorder_dof_joints_like_pinocchio(&mut dof_joints);
 
         let mut dof_name_to_idx = HashMap::new();
         for (i, j) in dof_joints.iter().enumerate() {
@@ -257,8 +258,182 @@ impl RobotWrapper {
         jac
     }
 
+    /// Compute the world-frame translational Jacobian for a link origin.
+    ///
+    /// The Python implementation converts Pinocchio's local frame Jacobian into
+    /// this world position Jacobian before applying cartesian loss gradients.
+    pub fn compute_single_link_position_jacobian(
+        &mut self,
+        qpos: &[f64],
+        link_id: usize,
+    ) -> DMatrix<f64> {
+        self.compute_forward_kinematics(qpos);
+        let ndof = self.dof();
+        let mut jac = DMatrix::zeros(3, ndof);
+        let link_pose = self.link_poses[link_id];
+        let link_pos = Vector3::new(link_pose[(0, 3)], link_pose[(1, 3)], link_pose[(2, 3)]);
+        let link_name = self.urdf.links[link_id].name.clone();
+        let ancestors = self.ancestor_joint_names(&link_name);
+
+        for (col, joint) in self.dof_joints.iter().enumerate() {
+            if !ancestors.contains(&joint.name) {
+                continue;
+            }
+            let Some(&parent_idx) = self.link_name_to_idx.get(&joint.parent_link) else {
+                continue;
+            };
+            let joint_pose = self.link_poses[parent_idx] * joint.origin;
+            let joint_pos =
+                Vector3::new(joint_pose[(0, 3)], joint_pose[(1, 3)], joint_pose[(2, 3)]);
+            let rot = joint_pose.fixed_view::<3, 3>(0, 0).into_owned();
+            let axis_world = rot * joint.axis;
+            let deriv = match joint.joint_type.as_str() {
+                "revolute" | "continuous" => axis_world.cross(&(link_pos - joint_pos)),
+                "prismatic" => axis_world,
+                _ => Vector3::zeros(),
+            };
+            jac[(0, col)] = deriv[0];
+            jac[(1, col)] = deriv[1];
+            jac[(2, col)] = deriv[2];
+        }
+
+        jac
+    }
+
+    fn ancestor_joint_names(&self, link_name: &str) -> HashSet<String> {
+        let mut ancestors = HashSet::new();
+        let mut current = link_name.to_string();
+        while let Some(joint_name) = self.joint_parent_map.get(&current) {
+            ancestors.insert(joint_name.clone());
+            let Some(joint) = self.urdf.joints.iter().find(|j| &j.name == joint_name) else {
+                break;
+            };
+            if joint.parent_link == current {
+                break;
+            }
+            current = joint.parent_link.clone();
+        }
+        ancestors
+    }
+
     /// Neutral configuration (all zeros)
     pub fn q0(&self) -> Vec<f64> {
         vec![0.0; self.dof()]
     }
+}
+
+fn reorder_dof_joints_like_pinocchio(joints: &mut [JointSpec]) {
+    let names: std::collections::HashSet<&str> = joints.iter().map(|j| j.name.as_str()).collect();
+
+    let order: Option<Vec<String>> = if names.contains("index_q1") && names.contains("thumb_q1") {
+        Some(
+            ["index", "middle", "pinky", "ring", "thumb"]
+                .iter()
+                .flat_map(|finger| [format!("{finger}_q1"), format!("{finger}_q2")])
+                .collect(),
+        )
+    } else if names.contains("index_proximal_joint") && names.contains("thumb_distal_joint") {
+        Some(
+            [
+                "index_proximal_joint",
+                "index_intermediate_joint",
+                "middle_proximal_joint",
+                "middle_intermediate_joint",
+                "pinky_proximal_joint",
+                "pinky_intermediate_joint",
+                "ring_proximal_joint",
+                "ring_intermediate_joint",
+                "thumb_proximal_yaw_joint",
+                "thumb_proximal_pitch_joint",
+                "thumb_intermediate_joint",
+                "thumb_distal_joint",
+            ]
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
+        )
+    } else if names.contains("joint_0.0") && names.contains("joint_15.0") {
+        Some(
+            [0, 1, 2, 3, 12, 13, 14, 15, 4, 5, 6, 7, 8, 9, 10, 11]
+                .iter()
+                .map(|i| format!("joint_{i}.0"))
+                .collect(),
+        )
+    } else if names.contains("0") && names.contains("15") {
+        Some(
+            [1, 0, 2, 3, 12, 13, 14, 15, 5, 4, 6, 7, 9, 8, 10, 11]
+                .iter()
+                .map(|i| i.to_string())
+                .collect(),
+        )
+    } else if names.contains("WRJ2") && names.contains("THJ1") {
+        Some(
+            [
+                "WRJ2", "WRJ1", "FFJ4", "FFJ3", "FFJ2", "FFJ1", "LFJ5", "LFJ4", "LFJ3", "LFJ2",
+                "LFJ1", "MFJ4", "MFJ3", "MFJ2", "MFJ1", "RFJ4", "RFJ3", "RFJ2", "RFJ1", "THJ5",
+                "THJ4", "THJ3", "THJ2", "THJ1",
+            ]
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
+        )
+    } else if names.iter().any(|n| n.contains("hand_Thumb_Opposition")) {
+        let prefix = if names.iter().any(|n| n.starts_with("left_hand_")) {
+            "left_hand_"
+        } else {
+            "right_hand_"
+        };
+        Some(
+            [
+                "Thumb_Opposition",
+                "Thumb_Flexion",
+                "j3",
+                "j4",
+                "index_spread",
+                "Index_Finger_Proximal",
+                "Index_Finger_Distal",
+                "j14",
+                "j5",
+                "Finger_Spread",
+                "Pinky",
+                "j13",
+                "j17",
+                "ring_spread",
+                "Ring_Finger",
+                "j12",
+                "j16",
+                "Middle_Finger_Proximal",
+                "Middle_Finger_Distal",
+                "j15",
+            ]
+            .iter()
+            .map(|suffix| format!("{prefix}{suffix}"))
+            .collect(),
+        )
+    } else {
+        None
+    };
+
+    let mut rank = HashMap::new();
+    for (i, name) in [
+        "dummy_x_translation_joint",
+        "dummy_y_translation_joint",
+        "dummy_z_translation_joint",
+        "dummy_x_rotation_joint",
+        "dummy_y_rotation_joint",
+        "dummy_z_rotation_joint",
+    ]
+    .iter()
+    .enumerate()
+    {
+        rank.insert((*name).to_string(), i);
+    }
+    if let Some(order) = order {
+        let offset = rank.len();
+        for (i, name) in order.into_iter().enumerate() {
+            rank.insert(name, offset + i);
+        }
+    }
+
+    joints.sort_by_key(|j| rank.get(&j.name).copied().unwrap_or(usize::MAX));
 }
