@@ -3,6 +3,10 @@ name = "dexi-py"
 version = "0.1.0"
 edition = "2021"
 description = "Python bindings for dexi via PyO3"
+license = "MIT"
+repository = "https://github.com/yuxiang-gao/dexi"
+homepage = "https://github.com/yuxiang-gao/dexi"
+documentation = "https://github.com/yuxiang-gao/dexi/tree/main/docs"
 
 [lib]
 name = "dexi_py"
@@ -12,4 +16,3 @@ crate-type = ["cdylib"]
 dexi = { path = "../dexi" }
 nalgebra = { workspace = true }
 pyo3 = { version = "0.28", features = ["extension-module"] }
-numpy = "0.28"

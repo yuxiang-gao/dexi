@@ -17,7 +17,7 @@ fn robots_dir() -> std::path::PathBuf {
 }
 
 fn configs_dir() -> std::path::PathBuf {
-    workspace_root().join("assets/configs")
+    workspace_root().join("configs")
 }
 
 /// Build a SeqRetargeting from a config name (e.g., "offline/allegro_hand_left.yml")

@@ -31,6 +31,16 @@ pub trait Optimizer: Send {
 
     /// Get DOF joint names
     fn dof_joint_names(&self) -> Vec<String>;
+
+    /// Get robot link names
+    fn link_names(&self) -> Vec<String>;
+
+    /// Compute world-frame positions for links at a full robot qpos.
+    fn link_positions(
+        &mut self,
+        qpos: &[f64],
+        link_names: &[String],
+    ) -> Result<Vec<[f64; 3]>, String>;
 }
 
 /// Huber loss (SmoothL1)
@@ -191,6 +201,37 @@ impl OptimizerData {
             adaptor: None,
         }
     }
+
+    pub fn link_positions(
+        &mut self,
+        qpos: &[f64],
+        link_names: &[String],
+    ) -> Result<Vec<[f64; 3]>, String> {
+        if qpos.len() != self.robot.dof() {
+            return Err(format!(
+                "Expected qpos length {}, got {}",
+                self.robot.dof(),
+                qpos.len()
+            ));
+        }
+
+        let mut qpos = qpos.to_vec();
+        if let Some(adaptor) = &self.adaptor {
+            adaptor.forward_qpos(&mut qpos);
+        }
+        self.robot.compute_forward_kinematics(&qpos);
+
+        let mut points = Vec::with_capacity(link_names.len());
+        for name in link_names {
+            let link_idx = self
+                .robot
+                .get_link_index(name)
+                .ok_or_else(|| format!("Link {} not found", name))?;
+            let pose = self.robot.get_link_pose(link_idx);
+            points.push([pose[(0, 3)], pose[(1, 3)], pose[(2, 3)]]);
+        }
+        Ok(points)
+    }
 }
 
 /// Position-based retargeting optimizer
@@ -346,6 +387,18 @@ impl Optimizer for PositionOptimizer {
 
     fn dof_joint_names(&self) -> Vec<String> {
         self.data.robot.dof_joint_names()
+    }
+
+    fn link_names(&self) -> Vec<String> {
+        self.data.robot.link_names()
+    }
+
+    fn link_positions(
+        &mut self,
+        qpos: &[f64],
+        link_names: &[String],
+    ) -> Result<Vec<[f64; 3]>, String> {
+        self.data.link_positions(qpos, link_names)
     }
 }
 
@@ -575,6 +628,18 @@ impl Optimizer for VectorOptimizer {
 
     fn dof_joint_names(&self) -> Vec<String> {
         self.data.robot.dof_joint_names()
+    }
+
+    fn link_names(&self) -> Vec<String> {
+        self.data.robot.link_names()
+    }
+
+    fn link_positions(
+        &mut self,
+        qpos: &[f64],
+        link_names: &[String],
+    ) -> Result<Vec<[f64; 3]>, String> {
+        self.data.link_positions(qpos, link_names)
     }
 }
 
@@ -960,5 +1025,17 @@ impl Optimizer for DexPilotOptimizer {
 
     fn dof_joint_names(&self) -> Vec<String> {
         self.data.robot.dof_joint_names()
+    }
+
+    fn link_names(&self) -> Vec<String> {
+        self.data.robot.link_names()
+    }
+
+    fn link_positions(
+        &mut self,
+        qpos: &[f64],
+        link_names: &[String],
+    ) -> Result<Vec<[f64; 3]>, String> {
+        self.data.link_positions(qpos, link_names)
     }
 }

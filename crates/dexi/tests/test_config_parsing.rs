@@ -11,21 +11,17 @@ fn workspace_root() -> &'static Path {
         .unwrap()
 }
 
-fn assets_dir() -> std::path::PathBuf {
-    workspace_root().join("assets")
-}
-
 fn robots_dir() -> std::path::PathBuf {
     workspace_root().join("assets/robots/hands")
 }
 
 fn configs_dir() -> std::path::PathBuf {
-    assets_dir().join("configs")
+    workspace_root().join("configs")
 }
 
-/// Helper to load a config from the assets/configs directory.
+/// Helper to load a config from the root configs directory.
 /// The URDF path in the config is relative, so we need to resolve it
-/// relative to the assets/robots/hands directory.
+/// through the root assets/robots/hands directory.
 fn load_config(config_relative: &str) -> RetargetingConfig {
     let config_path = configs_dir().join(config_relative);
     let config = RetargetingConfig::load_from_path(&config_path)

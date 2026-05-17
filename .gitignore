@@ -4,5 +4,8 @@ __pycache__
 *.so
 *.egg-info
 reference/
-assets/
 .claude/
+.env
+.venv/
+dist/
+.slim/deepwork/

@@ -109,6 +109,31 @@ impl PySeqRetargeting {
     }
 
     #[getter]
+    fn link_names(&self) -> PyResult<Vec<String>> {
+        let guard = self
+            .inner
+            .lock()
+            .map_err(|_| PyRuntimeError::new_err("SeqRetargeting lock poisoned"))?;
+        Ok(guard.optimizer.link_names())
+    }
+
+    fn link_positions(
+        &self,
+        robot_qpos: Vec<f64>,
+        link_names: Vec<String>,
+    ) -> PyResult<Vec<(f64, f64, f64)>> {
+        let mut guard = self
+            .inner
+            .lock()
+            .map_err(|_| PyRuntimeError::new_err("SeqRetargeting lock poisoned"))?;
+        guard
+            .optimizer
+            .link_positions(&robot_qpos, &link_names)
+            .map(|points| points.into_iter().map(|p| (p[0], p[1], p[2])).collect())
+            .map_err(value_error)
+    }
+
+    #[getter]
     fn fixed_dof(&self) -> PyResult<usize> {
         let guard = self
             .inner
@@ -132,13 +157,14 @@ fn load_from_file(path: &str) -> PyResult<PyRetargetingConfig> {
     PyRetargetingConfig::from_file(path)
 }
 
-/// A Python module for dexi hand retargeting.
+/// Native Python extension module for dexi hand retargeting.
 #[pymodule]
-fn dexi_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(
         "__doc__",
-        "dexi-py: Python bindings for dexi hand retargeting",
+        "dexi-py native bindings for dexi hand retargeting",
     )?;
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add_class::<PyRetargetingConfig>()?;
     m.add_class::<PySeqRetargeting>()?;
     m.add_function(wrap_pyfunction!(load_from_file, m)?)?;

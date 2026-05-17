@@ -203,7 +203,11 @@ impl RetargetingConfig {
         self.default_urdf_dir = dir.to_path_buf();
     }
 
-    /// Resolve the URDF path
+    /// Resolve the URDF path.
+    ///
+    /// Relative paths are first resolved relative to the config file's
+    /// directory. If that fails, each ancestor directory is checked for the
+    /// project/package layout `assets/robots/hands/<urdf_path>`.
     pub fn resolve_urdf_path(&self) -> Result<PathBuf, String> {
         let path = Path::new(&self.urdf_path);
         if path.is_absolute() {
@@ -213,33 +217,31 @@ impl RetargetingConfig {
                 Err(format!("URDF path {} does not exist", path.display()))
             }
         } else {
-            // Try relative to config dir
-            let full_path = self.default_urdf_dir.join(path);
-            if full_path.exists() {
-                return Ok(full_path);
+            let mut attempted = Vec::new();
+
+            let config_relative = self.default_urdf_dir.join(path);
+            attempted.push(config_relative.clone());
+            if config_relative.exists() {
+                return Ok(config_relative);
             }
-            // Try workspace assets dir
-            let ws_path = self
-                .default_urdf_dir
-                .join("../../assets/robots/hands")
-                .join(path);
-            if ws_path.exists() {
-                return Ok(ws_path);
+
+            for ancestor in self.default_urdf_dir.ancestors() {
+                let candidate = ancestor.join("assets/robots/hands").join(path);
+                attempted.push(candidate.clone());
+                if candidate.exists() {
+                    return Ok(candidate);
+                }
             }
-            // Try from workspace root
-            let ws_path2 = self
-                .default_urdf_dir
-                .join("../../../assets/robots/hands")
-                .join(path);
-            if ws_path2.exists() {
-                return Ok(ws_path2);
-            }
+
+            let attempted = attempted
+                .iter()
+                .map(|p| p.display().to_string())
+                .collect::<Vec<_>>()
+                .join(", ");
             Err(format!(
-                "URDF path {} does not exist (tried {}, {}, {})",
+                "URDF path {} does not exist (tried {})",
                 path.display(),
-                full_path.display(),
-                ws_path.display(),
-                ws_path2.display()
+                attempted
             ))
         }
     }
