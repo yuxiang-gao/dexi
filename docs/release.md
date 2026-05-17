@@ -1,6 +1,6 @@
 # Release and publishing
 
-The Python distribution is `dexi-py`; the version comes from the Cargo package
+The Python distribution is `dexi-rs`; the version comes from the Cargo package
 metadata for `crates/dexi-py` via maturin dynamic metadata.
 
 ## Preflight
@@ -17,7 +17,7 @@ install checks, examples, and release-safety checks.
 Publishing requires a clean tree and an exact tag on the current commit:
 
 ```bash
-git tag v0.1.0
+git tag v0.1.1
 ```
 
 The tag must match the Cargo package version exactly.

@@ -11,9 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> None:
-    wheels = sorted((ROOT / "dist").glob("dexi_py-*.whl"))
+    wheels = sorted((ROOT / "dist").glob("dexi_rs-*.whl"))
     if not wheels:
-        raise SystemExit("No dexi_py wheel found in dist/")
+        raise SystemExit("No dexi-rs wheel found in dist/")
     wheel = wheels[-1]
 
     with tempfile.TemporaryDirectory(prefix="dexi-wheel-") as tmp:

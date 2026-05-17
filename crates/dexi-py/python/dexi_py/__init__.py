@@ -14,7 +14,7 @@ from ._native import RetargetingConfig, SeqRetargeting, __version__ as _native_v
 from ._native import load_from_file
 
 try:
-    __version__ = metadata.version("dexi-py")
+    __version__ = metadata.version("dexi-rs")
 except metadata.PackageNotFoundError:  # pragma: no cover - editable/local fallback
     __version__ = _native_version
 

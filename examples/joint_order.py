@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["dexi-py"]
+# dependencies = ["dexi-rs"]
 # ///
 """Print retargeting output joint order for a config."""
 

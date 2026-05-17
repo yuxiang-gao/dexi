@@ -2,7 +2,7 @@
 
 ## Python package
 
-Install distribution `dexi-py`; import module `dexi_py`.
+Install distribution `dexi-rs`; import module `dexi_py`.
 
 ### Resource helpers
 

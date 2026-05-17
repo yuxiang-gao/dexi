@@ -1,13 +1,13 @@
-# dexi-py
+# dexi-rs
 
-`dexi-py` is a fast hand-retargeting package backed by a Rust engine. It loads
+`dexi-rs` is a fast hand-retargeting package backed by a Rust engine. It loads
 bundled robot-hand YAML configs and URDFs, then maps 3D human-hand targets to
 robot-hand joint positions.
 
-Install distribution `dexi-py`; import module `dexi_py`.
+Install distribution `dexi-rs`; import module `dexi_py`.
 
 ```bash
-uv pip install dexi-py
+uv pip install dexi-rs
 ```
 
 ## Quickstart

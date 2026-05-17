@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish dexi-py artifacts without printing the PyPI token."""
+"""Publish dexi-rs artifacts without printing the PyPI token."""
 
 from __future__ import annotations
 

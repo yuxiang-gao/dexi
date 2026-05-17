@@ -5,13 +5,13 @@
 Install the published Python package:
 
 ```bash
-uv pip install dexi-py
+uv pip install dexi-rs
 ```
 
 Import name and distribution name differ intentionally:
 
 ```python
-import dexi_py  # distribution: dexi-py
+import dexi_py  # distribution: dexi-rs
 ```
 
 ## Local development

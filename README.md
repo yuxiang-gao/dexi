@@ -5,12 +5,12 @@
 <h1 align="center">dexi 🦀🤖</h1>
 
 <p align="center">
-  <strong>Fast robot-hand retargeting in Rust, shipped to Python as <code>dexi-py</code>.</strong><br>
+  <strong>Fast robot-hand retargeting in Rust, shipped to Python as <code>dexi-rs</code>.</strong><br>
   YAML configs + URDFs in, robot joint positions out — with uv examples and 3D viser vibes.
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/dexi-py/"><img alt="PyPI" src="https://img.shields.io/pypi/v/dexi-py?color=blue"></a>
+  <a href="https://pypi.org/project/dexi-rs/"><img alt="PyPI" src="https://img.shields.io/pypi/v/dexi-rs?color=blue"></a>
   <img alt="Rust" src="https://img.shields.io/badge/core-Rust-orange">
   <img alt="Python" src="https://img.shields.io/badge/bindings-Python-3776AB">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
@@ -38,7 +38,7 @@ friendly from Python.
 ## Install 🚀
 
 ```bash
-uv pip install dexi-py
+uv pip install dexi-rs
 ```
 
 For local development from a checkout:

@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["dexi-py", "numpy"]
+# dependencies = ["dexi-rs", "numpy"]
 # ///
 """Retarget one synthetic Allegro right-hand vector frame."""
 

@@ -3,7 +3,7 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "dexi-py"
+name = "dexi-rs"
 dynamic = ["version"]
 description = "Fast Rust hand retargeting with Python bindings"
 readme = "README.md"
@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://pypi.org/project/dexi-py/"
+Homepage = "https://pypi.org/project/dexi-rs/"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]

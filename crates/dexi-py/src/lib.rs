@@ -160,10 +160,7 @@ fn load_from_file(path: &str) -> PyResult<PyRetargetingConfig> {
 /// Native Python extension module for dexi hand retargeting.
 #[pymodule]
 fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add(
-        "__doc__",
-        "dexi-py native bindings for dexi hand retargeting",
-    )?;
+    m.add("__doc__", "Native bindings for dexi-rs hand retargeting")?;
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add_class::<PyRetargetingConfig>()?;
     m.add_class::<PySeqRetargeting>()?;

@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["dexi-py", "numpy", "viser"]
+# dependencies = ["dexi-rs", "numpy", "viser"]
 # ///
 """Visualize retargeted link points with viser.
 

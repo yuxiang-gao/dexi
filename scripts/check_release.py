@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Release safety checks for dexi-py."""
+"""Release safety checks for dexi-rs."""
 
 from __future__ import annotations
 
@@ -16,7 +16,8 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = "dexi-py"
+CARGO_PACKAGE = "dexi-py"
+PYPI_PACKAGE = "dexi-rs"
 
 
 def run(args: list[str]) -> str:
@@ -26,9 +27,9 @@ def run(args: list[str]) -> str:
 def package_version() -> str:
     metadata = json.loads(run(["cargo", "metadata", "--format-version", "1", "--no-deps"]))
     for package in metadata["packages"]:
-        if package["name"] == PACKAGE:
+        if package["name"] == CARGO_PACKAGE:
             return package["version"]
-    raise RuntimeError(f"Cargo package {PACKAGE!r} not found")
+    raise RuntimeError(f"Cargo package {CARGO_PACKAGE!r} not found")
 
 
 def check_clean_tree() -> None:
@@ -45,7 +46,7 @@ def check_tag_matches(version: str) -> None:
 
 
 def check_pypi_available(version: str) -> None:
-    url = f"https://pypi.org/pypi/{PACKAGE}/{version}/json"
+    url = f"https://pypi.org/pypi/{PYPI_PACKAGE}/{version}/json"
     try:
         urllib.request.urlopen(url, timeout=10).read()
     except urllib.error.HTTPError as exc:
@@ -55,7 +56,7 @@ def check_pypi_available(version: str) -> None:
     except urllib.error.URLError:
         print("warning: could not reach PyPI to check version availability", file=sys.stderr)
         return
-    raise SystemExit(f"{PACKAGE} {version} already exists on PyPI")
+    raise SystemExit(f"{PYPI_PACKAGE} {version} already exists on PyPI")
 
 
 def check_forbidden_references() -> None:
@@ -174,7 +175,7 @@ def main() -> None:
         check_clean_tree()
         check_tag_matches(version)
         check_pypi_available(version)
-    print(f"release checks passed for {PACKAGE} {version}")
+    print(f"release checks passed for {PYPI_PACKAGE} {version}")
 
 
 if __name__ == "__main__":
