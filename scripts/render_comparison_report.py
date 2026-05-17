@@ -213,44 +213,231 @@ def retarget_renderings(rows: list[dict[str, Any]]) -> str:
         py_points = row.get("python_points", {})
         ru_points = row.get("rust_points", {})
         names = [name for name in row.get("render_links", []) if name in py_points and name in ru_points]
-        points = [py_points[name] for name in names] + [ru_points[name] for name in names]
-        xs = [float(point[0]) for point in points]
-        ys = [float(point[1]) for point in points]
-        min_x, max_x = min(xs), max(xs)
-        min_y, max_y = min(ys), max(ys)
-        span_x = max(max_x - min_x, 1e-6)
-        span_y = max(max_y - min_y, 1e-6)
-
-        def project(point: list[float]) -> tuple[float, float]:
-            x = 40 + (float(point[0]) - min_x) / span_x * 280
-            y = 250 - (float(point[1]) - min_y) / span_y * 190
-            return x, y
-
-        svg_parts = [
-            '<svg class="pose" viewBox="0 0 360 300" role="img" aria-label="Retargeted pose overlay">',
-            '<rect width="100%" height="100%" rx="16" fill="#ffffff"/>',
-            f'<text x="18" y="26" fill="#0f172a" font-size="13" font-weight="700">{html.escape(row.get("hand", "unknown"))} · {html.escape(row.get("retargeting_type", ""))}</text>',
-            f'<text x="18" y="46" fill="#64748b" font-size="11">pose mean {fmt(row.get("pose_mean_error"), 5)} · max {fmt(row.get("pose_max_error"), 5)}</text>',
-        ]
-        for name in names:
-            px, py = project(py_points[name])
-            rx, ry = project(ru_points[name])
-            svg_parts.append(f'<line x1="{px:.1f}" y1="{py:.1f}" x2="{rx:.1f}" y2="{ry:.1f}" stroke="#cbd5e1" stroke-width="1.4"/>')
-        for name in names:
-            px, py = project(py_points[name])
-            rx, ry = project(ru_points[name])
-            label = html.escape(name)
-            svg_parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="4.5" fill="#2563eb"><title>Python {label}</title></circle>')
-            svg_parts.append(f'<circle cx="{rx:.1f}" cy="{ry:.1f}" r="3.5" fill="#16a34a"><title>Rust {label}</title></circle>')
-        svg_parts.extend(
-            [
-                '<text x="18" y="280" fill="#2563eb" font-size="11">● Python FK projection</text>',
-                '<text x="190" y="280" fill="#16a34a" font-size="11">● Rust qpos projection</text>',
-                '</svg>',
-            ]
+        scene = {
+            "title": f'{row.get("hand", "unknown")} · {row.get("retargeting_type", "")}',
+            "subtitle": f'pose mean {fmt(row.get("pose_mean_error"), 5)} · max {fmt(row.get("pose_max_error"), 5)}',
+            "config": row.get("config", ""),
+            "links": [
+                {
+                    "name": name,
+                    "python": [float(value) for value in py_points[name]],
+                    "rust": [float(value) for value in ru_points[name]],
+                }
+                for name in names
+            ],
+        }
+        scene_json = html.escape(json.dumps(scene, separators=(",", ":")), quote=True)
+        cards.append(
+            "\n".join(
+                [
+                    '<article class="pose-card">',
+                    f'<div class="pose-title">{html.escape(scene["title"])}</div>',
+                    f'<div class="pose-subtitle">{html.escape(scene["subtitle"])}</div>',
+                    f'<div class="pose3d" data-scene="{scene_json}">',
+                    '<canvas width="720" height="520" aria-label="Interactive 3D retargeted output point cloud"></canvas>',
+                    '<div class="pose-controls">Drag to rotate · wheel to zoom · double-click reset</div>',
+                    '</div>',
+                    '</article>',
+                ]
+            )
         )
-        cards.append("\n".join(svg_parts))
     return "\n".join(cards)
+
+
+def interactive_3d_script() -> str:
+    return r"""
+<script>
+(() => {
+  const cssNumber = (value, fallback) => Number.isFinite(value) ? value : fallback;
+
+  function bounds(scene) {
+    const points = scene.links.flatMap(link => [link.python, link.rust]);
+    const mins = [0, 1, 2].map(axis => Math.min(...points.map(point => point[axis])));
+    const maxs = [0, 1, 2].map(axis => Math.max(...points.map(point => point[axis])));
+    const center = mins.map((value, axis) => (value + maxs[axis]) / 2);
+    const span = Math.max(maxs[0] - mins[0], maxs[1] - mins[1], maxs[2] - mins[2], 1e-6);
+    return { center, span };
+  }
+
+  function rotate(point, state, sceneBounds) {
+    const x = point[0] - sceneBounds.center[0];
+    const y = point[1] - sceneBounds.center[1];
+    const z = point[2] - sceneBounds.center[2];
+
+    const cy = Math.cos(state.yaw);
+    const sy = Math.sin(state.yaw);
+    const cp = Math.cos(state.pitch);
+    const sp = Math.sin(state.pitch);
+
+    const x1 = x * cy - y * sy;
+    const y1 = x * sy + y * cy;
+    const z1 = z;
+    const y2 = y1 * cp - z1 * sp;
+    const z2 = y1 * sp + z1 * cp;
+    return [x1, y2, z2];
+  }
+
+  function project(point, state, sceneBounds, width, height) {
+    const [x, depth, z] = rotate(point, state, sceneBounds);
+    const scale = Math.min(width, height) * 0.38 * state.zoom / sceneBounds.span;
+    return {
+      x: width / 2 + x * scale,
+      y: height / 2 - z * scale,
+      depth,
+    };
+  }
+
+  function drawAxis(ctx, label, axisPoint, color, state, sceneBounds, width, height) {
+    const origin = sceneBounds.center;
+    const target = [
+      origin[0] + axisPoint[0] * sceneBounds.span * 0.42,
+      origin[1] + axisPoint[1] * sceneBounds.span * 0.42,
+      origin[2] + axisPoint[2] * sceneBounds.span * 0.42,
+    ];
+    const start = project(origin, state, sceneBounds, width, height);
+    const end = project(target, state, sceneBounds, width, height);
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = "12px ui-sans-serif, system-ui";
+    ctx.fillText(label, end.x + 6, end.y + 4);
+    ctx.restore();
+  }
+
+  function drawScene(canvas, scene, state, sceneBounds) {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(rect.width, 320);
+    const height = Math.max(rect.height, 250);
+    if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+    }
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, "#ffffff");
+    gradient.addColorStop(1, "#f8fafc");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "700 14px ui-sans-serif, system-ui";
+    ctx.fillText(scene.title || "Retargeted output", 16, 24);
+    ctx.fillStyle = "#64748b";
+    ctx.font = "12px ui-sans-serif, system-ui";
+    ctx.fillText(scene.subtitle || "", 16, 44);
+
+    drawAxis(ctx, "x", [1, 0, 0], "#ef4444", state, sceneBounds, width, height);
+    drawAxis(ctx, "y", [0, 1, 0], "#22c55e", state, sceneBounds, width, height);
+    drawAxis(ctx, "z", [0, 0, 1], "#8b5cf6", state, sceneBounds, width, height);
+
+    const projected = scene.links.map(link => ({
+      name: link.name,
+      python: project(link.python, state, sceneBounds, width, height),
+      rust: project(link.rust, state, sceneBounds, width, height),
+    }));
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.72)";
+    ctx.lineWidth = 1.25;
+    for (const item of projected) {
+      ctx.beginPath();
+      ctx.moveTo(item.python.x, item.python.y);
+      ctx.lineTo(item.rust.x, item.rust.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    const dots = [];
+    for (const item of projected) {
+      dots.push({ kind: "Python", point: item.python, color: "#2563eb", name: item.name });
+      dots.push({ kind: "Rust", point: item.rust, color: "#16a34a", name: item.name });
+    }
+    const depthValues = dots.map(dot => dot.point.depth);
+    const minDepth = Math.min(...depthValues, -1e-6);
+    const maxDepth = Math.max(...depthValues, 1e-6);
+    dots.sort((a, b) => a.point.depth - b.point.depth);
+
+    for (const dot of dots) {
+      const t = (dot.point.depth - minDepth) / Math.max(maxDepth - minDepth, 1e-6);
+      const radius = 3.5 + 3.0 * t;
+      ctx.globalAlpha = 0.58 + 0.38 * t;
+      ctx.fillStyle = dot.color;
+      ctx.beginPath();
+      ctx.arc(dot.point.x, dot.point.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.fillStyle = "#2563eb";
+    ctx.font = "12px ui-sans-serif, system-ui";
+    ctx.fillText("● Python", 16, height - 18);
+    ctx.fillStyle = "#16a34a";
+    ctx.fillText("● Rust", 106, height - 18);
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("residual lines connect matching links", 184, height - 18);
+  }
+
+  document.querySelectorAll(".pose3d").forEach(container => {
+    const canvas = container.querySelector("canvas");
+    if (!canvas) return;
+    const scene = JSON.parse(container.dataset.scene || "{}");
+    const sceneBounds = bounds(scene);
+    const state = { yaw: -0.75, pitch: 0.55, zoom: 1.0 };
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    const redraw = () => drawScene(canvas, scene, state, sceneBounds);
+    canvas.addEventListener("pointerdown", event => {
+      dragging = true;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      canvas.setPointerCapture(event.pointerId);
+    });
+    canvas.addEventListener("pointermove", event => {
+      if (!dragging) return;
+      const dx = event.clientX - lastX;
+      const dy = event.clientY - lastY;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      state.yaw += dx * 0.01;
+      state.pitch = Math.max(-1.45, Math.min(1.45, state.pitch + dy * 0.01));
+      redraw();
+    });
+    canvas.addEventListener("pointerup", event => {
+      dragging = false;
+      canvas.releasePointerCapture(event.pointerId);
+    });
+    canvas.addEventListener("pointercancel", () => { dragging = false; });
+    canvas.addEventListener("wheel", event => {
+      event.preventDefault();
+      const delta = Math.exp(-event.deltaY * 0.001);
+      state.zoom = Math.max(0.35, Math.min(5.0, state.zoom * delta));
+      redraw();
+    }, { passive: false });
+    canvas.addEventListener("dblclick", () => {
+      state.yaw = -0.75;
+      state.pitch = 0.55;
+      state.zoom = 1.0;
+      redraw();
+    });
+    new ResizeObserver(redraw).observe(container);
+    redraw();
+  });
+})();
+</script>
+"""
 
 
 def qualitative_svg() -> str:
@@ -361,7 +548,13 @@ def render(rows: list[dict[str, Any]], mean_threshold: float, max_threshold: flo
     .grid {{ display:grid; grid-template-columns: 1fr; gap: 18px; }}
     .viz {{ width: 100%; height: auto; display:block; border-radius:18px; box-shadow:0 12px 36px rgba(15,23,42,.08); }}
     .poses {{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }}
-    .pose {{ width:100%; height:auto; border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 24px rgba(15,23,42,.06); }}
+    .pose-card {{ background:white; border:1px solid var(--line); border-radius:18px; padding:14px; box-shadow:0 8px 24px rgba(15,23,42,.06); }}
+    .pose-title {{ font-weight:800; font-size:.95rem; }}
+    .pose-subtitle {{ color:var(--muted); font-size:.82rem; margin:2px 0 10px; }}
+    .pose3d {{ border:1px solid var(--line); border-radius:16px; overflow:hidden; background:white; position:relative; }}
+    .pose3d canvas {{ display:block; width:100%; height:300px; cursor:grab; touch-action:none; }}
+    .pose3d canvas:active {{ cursor:grabbing; }}
+    .pose-controls {{ position:absolute; right:10px; top:10px; background:rgba(255,255,255,.88); color:#475569; border:1px solid rgba(226,232,240,.9); border-radius:999px; padding:5px 9px; font-size:.68rem; box-shadow:0 4px 16px rgba(15,23,42,.08); pointer-events:none; }}
     table {{ width: 100%; border-collapse: collapse; background:white; border:1px solid var(--line); border-radius: 16px; overflow:hidden; font-size:.92rem; }}
     th, td {{ padding: 11px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }}
     th {{ background:#f1f5f9; color:#334155; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; }}
@@ -403,7 +596,7 @@ def render(rows: list[dict[str, Any]], mean_threshold: float, max_threshold: flo
   </div>
 
   <h2>Rendered retargeted outputs</h2>
-  <p>Each mini-render projects the Python FK positions for the Python output qpos and the Rust output qpos onto the XY plane. Connector lines are the residual pose gap for corresponding links.</p>
+  <p>Each mini-render is an interactive 3D point cloud of Python FK positions for the Python output qpos and the Rust output qpos. Drag to rotate, use the mouse wheel to zoom, and double-click to reset. Axes mark x/y/z, point depth is encoded by size/opacity, and connector lines show the residual pose gap for corresponding links.</p>
   <div class="poses">
     {retarget_renderings(rows)}
   </div>
@@ -422,6 +615,7 @@ def render(rows: list[dict[str, Any]], mean_threshold: float, max_threshold: flo
 
   <footer>Generated from <code>scripts/compare_python_rust.py</code> output. The Rust path uses pure Rust kinematics and bounded optimization; the report records qpos parity, rendered pose parity, and retarget performance for every supported config.</footer>
 </main>
+{interactive_3d_script()}
 </body>
 </html>
 """

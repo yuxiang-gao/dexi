@@ -8,12 +8,14 @@ The script exercises every supported reference YAML config by default:
 Expected setup:
   1. Install the reference package, or run from the repository root so this
      script can add reference/dex-retargeting/src to sys.path.
-  2. Install the Rust binding into the active environment, for example:
-       maturin develop --manifest-path crates/dexi-py/Cargo.toml
+  2. Install the Rust binding into the active environment. Use --release for
+     performance reports, for example:
+       maturin develop --release --manifest-path crates/dexi-py/Cargo.toml
 
-The Rust implementation intentionally uses a pure-Rust kinematics/optimizer
-stack instead of Pinocchio + NLopt. This script reports numerical drift for
-all configs and only fails on drift thresholds when --fail-on-threshold is set.
+The Rust implementation uses a pure-Rust kinematics stack and bounded SLSQP.
+This script reports qpos parity, rendered-link pose parity, and retargeting
+performance for all configs. It only fails on drift thresholds when
+--fail-on-threshold is set.
 """
 
 from __future__ import annotations
