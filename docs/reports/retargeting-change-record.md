@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Reimplemented the `reference/dex-retargeting` retargeting path in pure Rust.
+- Reimplemented the Python retargeting path in pure Rust.
 - Added a Python extension module for driving the Rust implementation from Python.
 - Added an end-to-end Python-vs-Rust comparison workflow for every supported hand/config.
 - Added a rendered HTML report for qualitative, quantitative, and performance comparison review.

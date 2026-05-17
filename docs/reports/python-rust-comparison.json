@@ -1,6 +1,6 @@
 [
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_left.yml",
+    "config": "offline/ability_hand_left.yml",
     "hand": "ability_hand_left",
     "retargeting_type": "position",
     "dof": 16,
@@ -111,7 +111,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/ability_hand_right.yml",
+    "config": "offline/ability_hand_right.yml",
     "hand": "ability_hand_right",
     "retargeting_type": "position",
     "dof": 16,
@@ -222,7 +222,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_left.yml",
+    "config": "offline/allegro_hand_left.yml",
     "hand": "allegro_hand_left",
     "retargeting_type": "position",
     "dof": 22,
@@ -366,7 +366,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/allegro_hand_right.yml",
+    "config": "offline/allegro_hand_right.yml",
     "hand": "allegro_hand_right",
     "retargeting_type": "position",
     "dof": 22,
@@ -510,7 +510,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_left.yml",
+    "config": "offline/inspire_hand_left.yml",
     "hand": "inspire_hand_left",
     "retargeting_type": "position",
     "dof": 18,
@@ -621,7 +621,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/inspire_hand_right.yml",
+    "config": "offline/inspire_hand_right.yml",
     "hand": "inspire_hand_right",
     "retargeting_type": "position",
     "dof": 18,
@@ -732,7 +732,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_left.yml",
+    "config": "offline/leap_hand_left.yml",
     "hand": "leap_hand_left",
     "retargeting_type": "position",
     "dof": 22,
@@ -876,7 +876,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/leap_hand_right.yml",
+    "config": "offline/leap_hand_right.yml",
     "hand": "leap_hand_right",
     "retargeting_type": "position",
     "dof": 22,
@@ -1020,7 +1020,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/panda_gripper.yml",
+    "config": "offline/panda_gripper.yml",
     "hand": "panda_gripper",
     "retargeting_type": "position",
     "dof": 8,
@@ -1090,7 +1090,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_left.yml",
+    "config": "offline/schunk_svh_hand_left.yml",
     "hand": "schunk_svh_hand_left",
     "retargeting_type": "position",
     "dof": 26,
@@ -1256,7 +1256,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/schunk_svh_hand_right.yml",
+    "config": "offline/schunk_svh_hand_right.yml",
     "hand": "schunk_svh_hand_right",
     "retargeting_type": "position",
     "dof": 26,
@@ -1422,7 +1422,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_left.yml",
+    "config": "offline/shadow_hand_left.yml",
     "hand": "shadow_hand_left",
     "retargeting_type": "position",
     "dof": 30,
@@ -1588,7 +1588,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/offline/shadow_hand_right.yml",
+    "config": "offline/shadow_hand_right.yml",
     "hand": "shadow_hand_right",
     "retargeting_type": "position",
     "dof": 30,
@@ -1754,7 +1754,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left.yml",
+    "config": "teleop/ability_hand_left.yml",
     "hand": "ability_hand_left",
     "retargeting_type": "vector",
     "dof": 10,
@@ -1872,7 +1872,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_left_dexpilot.yml",
+    "config": "teleop/ability_hand_left_dexpilot.yml",
     "hand": "ability_hand_left",
     "retargeting_type": "dexpilot",
     "dof": 10,
@@ -1990,7 +1990,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right.yml",
+    "config": "teleop/ability_hand_right.yml",
     "hand": "ability_hand_right",
     "retargeting_type": "vector",
     "dof": 10,
@@ -2108,7 +2108,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/ability_hand_right_dexpilot.yml",
+    "config": "teleop/ability_hand_right_dexpilot.yml",
     "hand": "ability_hand_right",
     "retargeting_type": "dexpilot",
     "dof": 10,
@@ -2226,7 +2226,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left.yml",
+    "config": "teleop/allegro_hand_left.yml",
     "hand": "allegro_hand_left",
     "retargeting_type": "vector",
     "dof": 16,
@@ -2337,7 +2337,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_left_dexpilot.yml",
+    "config": "teleop/allegro_hand_left_dexpilot.yml",
     "hand": "allegro_hand_left",
     "retargeting_type": "dexpilot",
     "dof": 16,
@@ -2448,7 +2448,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right.yml",
+    "config": "teleop/allegro_hand_right.yml",
     "hand": "allegro_hand_right",
     "retargeting_type": "vector",
     "dof": 16,
@@ -2559,7 +2559,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/allegro_hand_right_dexpilot.yml",
+    "config": "teleop/allegro_hand_right_dexpilot.yml",
     "hand": "allegro_hand_right",
     "retargeting_type": "dexpilot",
     "dof": 16,
@@ -2670,7 +2670,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left.yml",
+    "config": "teleop/inspire_hand_left.yml",
     "hand": "inspire_hand_left",
     "retargeting_type": "vector",
     "dof": 12,
@@ -2792,7 +2792,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_left_dexpilot.yml",
+    "config": "teleop/inspire_hand_left_dexpilot.yml",
     "hand": "inspire_hand_left",
     "retargeting_type": "dexpilot",
     "dof": 12,
@@ -2914,7 +2914,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right.yml",
+    "config": "teleop/inspire_hand_right.yml",
     "hand": "inspire_hand_right",
     "retargeting_type": "vector",
     "dof": 12,
@@ -3036,7 +3036,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/inspire_hand_right_dexpilot.yml",
+    "config": "teleop/inspire_hand_right_dexpilot.yml",
     "hand": "inspire_hand_right",
     "retargeting_type": "dexpilot",
     "dof": 12,
@@ -3158,7 +3158,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left.yml",
+    "config": "teleop/leap_hand_left.yml",
     "hand": "leap_hand_left",
     "retargeting_type": "vector",
     "dof": 16,
@@ -3269,7 +3269,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_left_dexpilot.yml",
+    "config": "teleop/leap_hand_left_dexpilot.yml",
     "hand": "leap_hand_left",
     "retargeting_type": "dexpilot",
     "dof": 16,
@@ -3380,7 +3380,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right.yml",
+    "config": "teleop/leap_hand_right.yml",
     "hand": "leap_hand_right",
     "retargeting_type": "vector",
     "dof": 16,
@@ -3491,7 +3491,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/leap_hand_right_dexpilot.yml",
+    "config": "teleop/leap_hand_right_dexpilot.yml",
     "hand": "leap_hand_right",
     "retargeting_type": "dexpilot",
     "dof": 16,
@@ -3602,7 +3602,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper.yml",
+    "config": "teleop/panda_gripper.yml",
     "hand": "panda_gripper",
     "retargeting_type": "vector",
     "dof": 2,
@@ -3660,7 +3660,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/panda_gripper_dexpilot.yml",
+    "config": "teleop/panda_gripper_dexpilot.yml",
     "hand": "panda_gripper",
     "retargeting_type": "dexpilot",
     "dof": 2,
@@ -3729,7 +3729,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left.yml",
+    "config": "teleop/schunk_svh_hand_left.yml",
     "hand": "schunk_svh_hand_left",
     "retargeting_type": "vector",
     "dof": 20,
@@ -3851,7 +3851,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_left_dexpilot.yml",
+    "config": "teleop/schunk_svh_hand_left_dexpilot.yml",
     "hand": "schunk_svh_hand_left",
     "retargeting_type": "dexpilot",
     "dof": 20,
@@ -3973,7 +3973,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right.yml",
+    "config": "teleop/schunk_svh_hand_right.yml",
     "hand": "schunk_svh_hand_right",
     "retargeting_type": "vector",
     "dof": 20,
@@ -4095,7 +4095,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/schunk_svh_hand_right_dexpilot.yml",
+    "config": "teleop/schunk_svh_hand_right_dexpilot.yml",
     "hand": "schunk_svh_hand_right",
     "retargeting_type": "dexpilot",
     "dof": 20,
@@ -4217,7 +4217,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left.yml",
+    "config": "teleop/shadow_hand_left.yml",
     "hand": "shadow_hand_left",
     "retargeting_type": "vector",
     "dof": 24,
@@ -4394,7 +4394,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_left_dexpilot.yml",
+    "config": "teleop/shadow_hand_left_dexpilot.yml",
     "hand": "shadow_hand_left",
     "retargeting_type": "dexpilot",
     "dof": 24,
@@ -4516,7 +4516,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right.yml",
+    "config": "teleop/shadow_hand_right.yml",
     "hand": "shadow_hand_right",
     "retargeting_type": "vector",
     "dof": 24,
@@ -4693,7 +4693,7 @@
     "message": ""
   },
   {
-    "config": "reference/dex-retargeting/src/dex_retargeting/configs/teleop/shadow_hand_right_dexpilot.yml",
+    "config": "teleop/shadow_hand_right_dexpilot.yml",
     "hand": "shadow_hand_right",
     "retargeting_type": "dexpilot",
     "dof": 24,
