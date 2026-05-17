@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/dexi",
+    "crates/dexi-py",
+]
+
+[workspace.dependencies]
+nalgebra = "0.33"
+roxmltree = "0.20"
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+thiserror = "2"
+rand = "0.8"
+approx = "0.5"

@@ -1,0 +1,15 @@
+[package]
+name = "dexi-py"
+version = "0.1.0"
+edition = "2021"
+description = "Python bindings for dexi via PyO3"
+
+[lib]
+name = "dexi_py"
+crate-type = ["cdylib"]
+
+[dependencies]
+dexi = { path = "../dexi" }
+nalgebra = { workspace = true }
+pyo3 = { version = "0.28", features = ["extension-module"] }
+numpy = "0.28"

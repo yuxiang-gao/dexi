@@ -1,0 +1,29 @@
+[package]
+name = "dexi"
+version = "0.1.0"
+edition = "2021"
+description = "Pure Rust hand retargeting library"
+license = "MIT"
+
+[dependencies]
+nalgebra = { workspace = true }
+roxmltree = { workspace = true }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+thiserror = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+approx = { workspace = true }
+
+[[test]]
+name = "test_config_parsing"
+path = "tests/test_config_parsing.rs"
+
+[[test]]
+name = "test_optimizer"
+path = "tests/test_optimizer.rs"
+
+[[test]]
+name = "test_python_comparison"
+path = "tests/test_python_comparison.rs"

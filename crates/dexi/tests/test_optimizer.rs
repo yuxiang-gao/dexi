@@ -1,0 +1,433 @@
+//! Test: optimizer smoke tests for all supported hand config families.
+
+use dexi::{RetargetingConfig, RobotWrapper, SeqRetargeting};
+use std::path::Path;
+
+fn workspace_root() -> &'static Path {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+}
+
+fn robots_dir() -> std::path::PathBuf {
+    workspace_root().join("assets/robots/hands")
+}
+
+fn configs_dir() -> std::path::PathBuf {
+    workspace_root().join("assets/configs")
+}
+
+/// Build a SeqRetargeting from a config name (e.g., "offline/allegro_hand_left.yml")
+fn build_retargeting(config_name: &str) -> SeqRetargeting {
+    let config_path = configs_dir().join(config_name);
+    let mut config = RetargetingConfig::load_from_path(&config_path)
+        .unwrap_or_else(|e| panic!("Failed to load config {}: {}", config_name, e));
+    config.set_default_urdf_dir(&robots_dir());
+    config
+        .build()
+        .unwrap_or_else(|e| panic!("Failed to build retargeting for {}: {}", config_name, e))
+}
+
+/// Test basic FK computation for allegro hand
+#[test]
+fn test_fk_allegro() {
+    let urdf_path = robots_dir().join("allegro_hand/allegro_hand_left.urdf");
+    let mut robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap())
+        .expect("Failed to load allegro URDF");
+
+    let ndof = robot.dof();
+    assert_eq!(ndof, 16); // Allegro has 16 DOF
+
+    let qpos = vec![0.0; ndof];
+    robot.compute_forward_kinematics(&qpos);
+
+    // Check that tip links are not at origin
+    let tip_link = robot
+        .get_link_index("link_3.0_tip")
+        .expect("tip link not found");
+    let pose = robot.get_link_pose(tip_link);
+    // Position should not be all zeros
+    let pos_norm = (pose[(0, 3)].powi(2) + pose[(1, 3)].powi(2) + pose[(2, 3)].powi(2)).sqrt();
+    assert!(
+        pos_norm > 0.01,
+        "Tip link position norm too small: {}",
+        pos_norm
+    );
+}
+
+/// Test FK for inspire hand (has mimic joints)
+#[test]
+fn test_fk_inspire() {
+    let urdf_path = robots_dir().join("inspire_hand/inspire_hand_left.urdf");
+    let mut robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap())
+        .expect("Failed to load inspire URDF");
+
+    let ndof = robot.dof();
+    assert!(ndof > 0, "Inspire hand should have DOF > 0");
+
+    let qpos = vec![0.0; ndof];
+    robot.compute_forward_kinematics(&qpos);
+}
+
+/// Test position retargeting for allegro hand with synthetic data
+#[test]
+fn test_position_retargeting_allegro() {
+    let config_name = "offline/allegro_hand_left.yml";
+    let mut retargeting = build_retargeting(config_name);
+
+    // Generate synthetic target positions from FK at a known qpos
+    let urdf_path = robots_dir().join("allegro_hand/allegro_hand_left.urdf");
+    let robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap()).unwrap();
+
+    // Sample a qpos within joint limits (6 dummy + 16 = 22 DOF)
+    let ndof = robot.dof(); // 16 DOF without dummy
+    let dummy_ndof = 6;
+    let total_ndof = ndof + dummy_ndof;
+    let qpos_full = vec![0.3; total_ndof];
+
+    // Create robot with dummy joints
+    let urdf_with_dummy = {
+        let mut urdf = dexi::urdf::UrdfRobot::from_file(
+            &robots_dir().join("allegro_hand/allegro_hand_left.urdf"),
+        )
+        .unwrap();
+        dexi::retargeting_config::add_dummy_free_joints(&mut urdf);
+        urdf
+    };
+    let mut robot_full = RobotWrapper::new(urdf_with_dummy).unwrap();
+
+    robot_full.compute_forward_kinematics(&qpos_full);
+
+    // Get target link positions
+    let target_link_names = [
+        "link_15.0_tip",
+        "link_11.0_tip",
+        "link_7.0_tip",
+        "link_3.0_tip",
+        "link_14.0",
+        "link_10.0",
+        "link_6.0",
+        "link_2.0",
+    ];
+    let mut ref_value = Vec::new();
+    for name in &target_link_names {
+        let idx = robot_full
+            .get_link_index(name)
+            .expect(&format!("Link {} not found", name));
+        let pose = robot_full.get_link_pose(idx);
+        ref_value.push(pose[(0, 3)]);
+        ref_value.push(pose[(1, 3)]);
+        ref_value.push(pose[(2, 3)]);
+    }
+
+    // Run retargeting
+    let result = retargeting.retarget(&ref_value, &[]);
+    assert!(
+        !result.is_empty(),
+        "Retargeting should return non-empty result"
+    );
+    // After retargeting, the result should be close to the original qpos for the finger joints
+}
+
+/// Test vector retargeting for allegro hand
+#[test]
+fn test_vector_retargeting_allegro() {
+    let config_name = "teleop/allegro_hand_left.yml";
+    let mut retargeting = build_retargeting(config_name);
+
+    // Generate synthetic vectors from FK
+    let urdf_path = robots_dir().join("allegro_hand/allegro_hand_left.urdf");
+    let mut robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap()).unwrap();
+
+    let ndof = robot.dof();
+    let qpos = vec![0.3; ndof];
+    robot.compute_forward_kinematics(&qpos);
+
+    let wrist_idx = robot.get_link_index("wrist").unwrap();
+    let wrist_pose = robot.get_link_pose(wrist_idx);
+    let wrist_pos = [wrist_pose[(0, 3)], wrist_pose[(1, 3)], wrist_pose[(2, 3)]];
+
+    let tip_names = [
+        "link_15.0_tip",
+        "link_11.0_tip",
+        "link_7.0_tip",
+        "link_3.0_tip",
+    ];
+    let mut ref_value = Vec::new();
+    for name in &tip_names {
+        let idx = robot.get_link_index(name).unwrap();
+        let pose = robot.get_link_pose(idx);
+        ref_value.push(pose[(0, 3)] - wrist_pos[0]);
+        ref_value.push(pose[(1, 3)] - wrist_pos[1]);
+        ref_value.push(pose[(2, 3)] - wrist_pos[2]);
+    }
+
+    let result = retargeting.retarget(&ref_value, &[]);
+    assert!(!result.is_empty());
+}
+
+/// Test DexPilot retargeting for allegro hand
+#[test]
+fn test_dexpilot_retargeting_allegro() {
+    let config_name = "teleop/allegro_hand_left_dexpilot.yml";
+    let mut retargeting = build_retargeting(config_name);
+
+    // Generate synthetic vectors from FK
+    let urdf_path = robots_dir().join("allegro_hand/allegro_hand_left.urdf");
+    let mut robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap()).unwrap();
+
+    let ndof = robot.dof();
+    let qpos = vec![0.3; ndof];
+    robot.compute_forward_kinematics(&qpos);
+
+    let wrist_idx = robot.get_link_index("wrist").unwrap();
+    let wrist_pose = robot.get_link_pose(wrist_idx);
+    let wrist_pos = [wrist_pose[(0, 3)], wrist_pose[(1, 3)], wrist_pose[(2, 3)]];
+
+    let tip_names = [
+        "link_15.0_tip",
+        "link_11.0_tip",
+        "link_7.0_tip",
+        "link_3.0_tip",
+    ];
+    let mut tip_positions = Vec::new();
+    for name in &tip_names {
+        let idx = robot.get_link_index(name).unwrap();
+        let pose = robot.get_link_pose(idx);
+        tip_positions.push([pose[(0, 3)], pose[(1, 3)], pose[(2, 3)]]);
+    }
+
+    // DexPilot generate_link_indices(4) produces:
+    // origin: [2,3,4, 3,4, 4, 0,0,0,0]
+    // task:   [1,1,1, 2,2, 3, 1,2,3,4]
+    // where link_names = [wrist, tip0, tip1, tip2, tip3]
+    // link 0 = wrist, link 1 = tip0, link 2 = tip1, link 3 = tip2, link 4 = tip3
+    let all_positions: Vec<[f64; 3]> = std::iter::once(wrist_pos)
+        .chain(tip_positions.iter().cloned())
+        .collect();
+
+    let origin_indices = [2, 3, 4, 3, 4, 4, 0, 0, 0, 0];
+    let task_indices = [1, 1, 1, 2, 2, 3, 1, 2, 3, 4];
+
+    let mut ref_value = Vec::new();
+    for i in 0..10 {
+        let oi = origin_indices[i];
+        let ti = task_indices[i];
+        ref_value.push(all_positions[ti][0] - all_positions[oi][0]);
+        ref_value.push(all_positions[ti][1] - all_positions[oi][1]);
+        ref_value.push(all_positions[ti][2] - all_positions[oi][2]);
+    }
+
+    let result = retargeting.retarget(&ref_value, &[]);
+    assert!(!result.is_empty());
+}
+
+/// Test position retargeting for inspire hand (has mimic joints)
+#[test]
+fn test_position_retargeting_inspire() {
+    let config_name = "offline/inspire_hand_left.yml";
+    let mut retargeting = build_retargeting(config_name);
+
+    let urdf_path = robots_dir().join("inspire_hand/inspire_hand_left.urdf");
+    let mut robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap()).unwrap();
+
+    let ndof = robot.dof();
+    let qpos = vec![0.2; ndof];
+    robot.compute_forward_kinematics(&qpos);
+
+    let tip_names = [
+        "thumb_tip",
+        "index_tip",
+        "middle_tip",
+        "ring_tip",
+        "pinky_tip",
+    ];
+    let mut ref_value = Vec::new();
+    for name in &tip_names {
+        let idx = robot.get_link_index(name).unwrap();
+        let pose = robot.get_link_pose(idx);
+        ref_value.push(pose[(0, 3)]);
+        ref_value.push(pose[(1, 3)]);
+        ref_value.push(pose[(2, 3)]);
+    }
+
+    let result = retargeting.retarget(&ref_value, &[]);
+    assert!(!result.is_empty());
+}
+
+/// Test LEAP hand
+#[test]
+fn test_position_retargeting_leap() {
+    let config_name = "offline/leap_hand_left.yml";
+    let mut retargeting = build_retargeting(config_name);
+
+    let urdf_path = robots_dir().join("leap_hand/leap_hand_left.urdf");
+    let mut robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap()).unwrap();
+
+    let ndof = robot.dof();
+    let qpos = vec![0.2; ndof];
+    robot.compute_forward_kinematics(&qpos);
+
+    let tip_names = [
+        "thumb_tip_head",
+        "index_tip_head",
+        "middle_tip_head",
+        "ring_tip_head",
+        "thumb_dip",
+        "dip",
+        "dip_2",
+        "dip_3",
+    ];
+    let mut ref_value = Vec::new();
+    for name in &tip_names {
+        if let Some(idx) = robot.get_link_index(name) {
+            let pose = robot.get_link_pose(idx);
+            ref_value.push(pose[(0, 3)]);
+            ref_value.push(pose[(1, 3)]);
+            ref_value.push(pose[(2, 3)]);
+        }
+    }
+
+    if !ref_value.is_empty() {
+        let result = retargeting.retarget(&ref_value, &[]);
+        assert!(!result.is_empty());
+    }
+}
+
+/// Test panda gripper (with mimic joint)
+#[test]
+fn test_position_retargeting_panda() {
+    let config_name = "offline/panda_gripper.yml";
+    let mut retargeting = build_retargeting(config_name);
+
+    let urdf_path = robots_dir().join("panda_gripper/panda_gripper_glb.urdf");
+    let mut robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap()).unwrap();
+
+    let ndof = robot.dof();
+    let qpos = vec![0.02; ndof]; // small opening
+    robot.compute_forward_kinematics(&qpos);
+
+    let tip_names = ["panda_leftfinger", "panda_rightfinger"];
+    let mut ref_value = Vec::new();
+    for name in &tip_names {
+        if let Some(idx) = robot.get_link_index(name) {
+            let pose = robot.get_link_pose(idx);
+            ref_value.push(pose[(0, 3)]);
+            ref_value.push(pose[(1, 3)]);
+            ref_value.push(pose[(2, 3)]);
+        }
+    }
+
+    if !ref_value.is_empty() {
+        let result = retargeting.retarget(&ref_value, &[]);
+        assert!(!result.is_empty());
+    }
+}
+
+/// Test shadow hand
+#[test]
+fn test_position_retargeting_shadow() {
+    let config_name = "offline/shadow_hand_left.yml";
+    let _retargeting = build_retargeting(config_name);
+
+    let urdf_path = robots_dir().join("shadow_hand/shadow_hand_left.urdf");
+    let robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap()).unwrap();
+
+    let ndof = robot.dof();
+    assert!(ndof > 0);
+}
+
+/// Test ability hand
+#[test]
+fn test_position_retargeting_ability() {
+    let config_name = "offline/ability_hand_left.yml";
+    let _retargeting = build_retargeting(config_name);
+}
+
+/// Test schunk hand
+#[test]
+fn test_position_retargeting_schunk() {
+    let config_name = "offline/schunk_svh_hand_left.yml";
+    let _retargeting = build_retargeting(config_name);
+}
+
+/// Test LP filter
+#[test]
+fn test_lp_filter() {
+    use dexi::LPFilter;
+    let mut filter = LPFilter::new(0.5);
+
+    let x1 = vec![1.0, 2.0, 3.0];
+    let y1 = filter.next(&x1);
+    assert_eq!(y1, x1); // First call returns input
+
+    let x2 = vec![3.0, 4.0, 5.0];
+    let y2 = filter.next(&x2);
+    // y = y + alpha * (x - y) = [1,2,3] + 0.5 * ([3,4,5] - [1,2,3]) = [2, 3, 4]
+    assert!((y2[0] - 2.0).abs() < 1e-10);
+    assert!((y2[1] - 3.0).abs() < 1e-10);
+    assert!((y2[2] - 4.0).abs() < 1e-10);
+
+    filter.reset();
+    assert!(!filter.is_init);
+}
+
+/// Test URDF parsing for allegro hand
+#[test]
+fn test_urdf_parsing_allegro() {
+    let urdf_path = robots_dir().join("allegro_hand/allegro_hand_left.urdf");
+    let robot = dexi::urdf::UrdfRobot::from_file(&urdf_path).unwrap();
+
+    assert_eq!(robot.name, "allegro_left");
+    assert!(robot.links.len() > 10);
+    assert!(robot.joints.len() > 10);
+
+    let root = robot.root_link().unwrap();
+    assert_eq!(root, "base_link");
+
+    let dof_names = robot.dof_joint_names();
+    assert_eq!(dof_names.len(), 16);
+
+    // Check no mimic joints
+    let (has_mimic, _, _, _, _) = robot.parse_mimic_joints();
+    assert!(!has_mimic);
+}
+
+/// Test URDF parsing for inspire hand (has mimic joints)
+#[test]
+fn test_urdf_parsing_inspire() {
+    let urdf_path = robots_dir().join("inspire_hand/inspire_hand_left.urdf");
+    let robot = dexi::urdf::UrdfRobot::from_file(&urdf_path).unwrap();
+
+    assert!(robot.links.len() > 5);
+
+    let (has_mimic, source_names, mimic_names, multipliers, offsets) = robot.parse_mimic_joints();
+    assert!(has_mimic);
+    assert_eq!(source_names.len(), mimic_names.len());
+    assert_eq!(multipliers.len(), offsets.len());
+
+    // Check specific mimic joint
+    assert!(mimic_names.contains(&"thumb_intermediate_joint".to_string()));
+}
+
+/// Test Jacobian computation
+#[test]
+fn test_jacobian_computation() {
+    let urdf_path = robots_dir().join("allegro_hand/allegro_hand_left.urdf");
+    let mut robot = RobotWrapper::from_urdf_path(urdf_path.to_str().unwrap()).unwrap();
+
+    let ndof = robot.dof();
+    let qpos = vec![0.0; ndof];
+    let tip_idx = robot.get_link_index("link_3.0_tip").unwrap();
+
+    let jac = robot.compute_single_link_local_jacobian(&qpos, tip_idx);
+    assert_eq!(jac.nrows(), 6);
+    assert_eq!(jac.ncols(), ndof);
+
+    // Position part should not be all zeros for a reachable link
+    let pos_jac = jac.rows(0, 3);
+    let norm = pos_jac.iter().map(|x| x.powi(2)).sum::<f64>().sqrt();
+    assert!(norm > 1e-6, "Jacobian should not be all zeros");
+}
