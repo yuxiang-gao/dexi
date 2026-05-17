@@ -1,0 +1,83 @@
+<svg width="1200" height="360" viewBox="0 0 1200 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">dexi banner</title>
+  <desc id="desc">A stylized Rust-powered hand retargeting banner with human motion vectors flowing into robot-hand joints.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#120C24"/>
+      <stop offset="0.45" stop-color="#231348"/>
+      <stop offset="1" stop-color="#082B35"/>
+    </linearGradient>
+    <linearGradient id="rust" x1="126" y1="92" x2="566" y2="286" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB86B"/>
+      <stop offset="0.55" stop-color="#F97316"/>
+      <stop offset="1" stop-color="#FB7185"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="682" y1="84" x2="1030" y2="284" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#67E8F9"/>
+      <stop offset="1" stop-color="#22C55E"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.2 0 0 0 0 0.9 0 0 0 0 1 0 0 0 0.45 0"/>
+      <feBlend in="SourceGraphic" mode="screen"/>
+    </filter>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0V36" stroke="white" stroke-opacity="0.05"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="360" rx="34" fill="url(#bg)"/>
+  <rect width="1200" height="360" rx="34" fill="url(#grid)"/>
+  <circle cx="1030" cy="80" r="190" fill="#22D3EE" fill-opacity="0.08"/>
+  <circle cx="176" cy="310" r="180" fill="#F97316" fill-opacity="0.12"/>
+
+  <g opacity="0.9" filter="url(#glow)">
+    <path d="M402 180 C512 80 648 80 760 180" stroke="#67E8F9" stroke-width="4" stroke-dasharray="12 14"/>
+    <path d="M402 216 C526 296 638 292 760 216" stroke="#A78BFA" stroke-width="3" stroke-dasharray="9 12"/>
+    <path d="M424 148 C532 170 632 170 738 148" stroke="#34D399" stroke-width="3" stroke-dasharray="7 10"/>
+  </g>
+
+  <!-- Human-hand reference points -->
+  <g transform="translate(110 72)">
+    <path d="M108 214 C72 174 50 126 58 82 C63 53 91 53 94 82 L101 139 L111 66 C116 32 151 34 150 70 L147 140 L164 62 C173 30 206 38 199 72 L184 144 L210 82 C224 52 254 67 240 98 L207 169 C195 196 166 226 132 228 C123 229 115 224 108 214Z" fill="url(#rust)" fill-opacity="0.18" stroke="url(#rust)" stroke-width="5"/>
+    <circle cx="94" cy="82" r="8" fill="#FDBA74"/>
+    <circle cx="150" cy="70" r="8" fill="#FDBA74"/>
+    <circle cx="199" cy="72" r="8" fill="#FDBA74"/>
+    <circle cx="240" cy="98" r="8" fill="#FDBA74"/>
+    <circle cx="132" cy="228" r="10" fill="#FB7185"/>
+    <text x="0" y="260" fill="#FED7AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">human refs</text>
+  </g>
+
+  <!-- Robot-hand output points -->
+  <g transform="translate(812 76)">
+    <path d="M98 222 L78 152 L66 70 M116 220 L124 137 L132 52 M136 218 L170 142 L196 66 M156 210 L212 158 L258 116 M88 188 L42 148 L22 106" stroke="url(#cyan)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="66" cy="70" r="10" fill="#67E8F9"/>
+    <circle cx="132" cy="52" r="10" fill="#67E8F9"/>
+    <circle cx="196" cy="66" r="10" fill="#67E8F9"/>
+    <circle cx="258" cy="116" r="10" fill="#67E8F9"/>
+    <circle cx="22" cy="106" r="10" fill="#67E8F9"/>
+    <circle cx="128" cy="228" r="18" fill="#0F172A" stroke="#34D399" stroke-width="7"/>
+    <text x="44" y="260" fill="#BBF7D0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">robot qpos</text>
+  </g>
+
+  <!-- Center typography -->
+  <g transform="translate(486 96)">
+    <text x="0" y="58" fill="white" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="900" font-size="74" letter-spacing="-3">dexi</text>
+    <text x="4" y="96" fill="#C4B5FD" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20">retarget hands • in Rust • from Python</text>
+    <g transform="translate(0 128)">
+      <rect x="0" y="0" width="96" height="34" rx="17" fill="#F97316" fill-opacity="0.22" stroke="#FDBA74"/>
+      <text x="18" y="23" fill="#FED7AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15">🦀 Rust</text>
+      <rect x="110" y="0" width="118" height="34" rx="17" fill="#2563EB" fill-opacity="0.22" stroke="#93C5FD"/>
+      <text x="128" y="23" fill="#BFDBFE" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15">🐍 Python</text>
+      <rect x="242" y="0" width="120" height="34" rx="17" fill="#16A34A" fill-opacity="0.22" stroke="#86EFAC"/>
+      <text x="262" y="23" fill="#BBF7D0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15">👁 viser</text>
+    </g>
+  </g>
+
+  <g opacity="0.55">
+    <circle cx="58" cy="54" r="3" fill="#E0E7FF"/>
+    <circle cx="1118" cy="304" r="4" fill="#A7F3D0"/>
+    <circle cx="602" cy="314" r="3" fill="#FDE68A"/>
+    <circle cx="766" cy="48" r="3" fill="#F0ABFC"/>
+  </g>
+</svg>
