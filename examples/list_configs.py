@@ -6,11 +6,11 @@
 
 from __future__ import annotations
 
-import dexi_py
+import dexi_rs
 
 
 def main() -> None:
-    for name in dexi_py.available_configs():
+    for name in dexi_rs.available_configs():
         print(name)
 
 

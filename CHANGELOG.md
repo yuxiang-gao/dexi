@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- Breaking: rename the Python import package from `dexi_py` to `dexi_rs`.
+- Keep the published distribution name and import name aligned.
+- Remove the old import path instead of shipping a compatibility shim.
+
 ## 0.1.2
 
 - Upgrade the viser example to load the Allegro URDF mesh model.

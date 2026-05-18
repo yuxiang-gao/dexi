@@ -49,5 +49,5 @@ configs/{offline,teleop}/*.yml
 assets/robots/hands/*/*.urdf
 ```
 
-Installed package layout is exposed through `dexi_py.config_path()` and
-`dexi_py.asset_path()`.
+Installed package layout is exposed through `dexi_rs.config_path()` and
+`dexi_rs.asset_path()`.

@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import numpy as np
 
-import dexi_py
+import dexi_rs
 
 
 def main() -> None:
-    retargeting = dexi_py.load_config("teleop/allegro_hand_right.yml").build()
+    retargeting = dexi_rs.load_config("teleop/allegro_hand_right.yml").build()
     target_vectors = np.array(
         [
             [0.03, -0.02, 0.08],

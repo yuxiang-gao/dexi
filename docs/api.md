@@ -2,21 +2,21 @@
 
 ## Python package
 
-Install distribution `dexi-rs`; import module `dexi_py`.
+Install distribution `dexi-rs`; import module `dexi_rs`.
 
 ### Resource helpers
 
 ```python
-dexi_py.available_configs(kind: str | None = None) -> list[str]
-dexi_py.config_path(name: str | Path) -> Path
-dexi_py.asset_path(name: str | Path = "robots/hands") -> Path
-dexi_py.load_config(name: str | Path) -> RetargetingConfig
+dexi_rs.available_configs(kind: str | None = None) -> list[str]
+dexi_rs.config_path(name: str | Path) -> Path
+dexi_rs.asset_path(name: str | Path = "robots/hands") -> Path
+dexi_rs.load_config(name: str | Path) -> RetargetingConfig
 ```
 
 ### `RetargetingConfig`
 
 ```python
-cfg = dexi_py.RetargetingConfig.from_file("path/to/config.yml")
+cfg = dexi_rs.RetargetingConfig.from_file("path/to/config.yml")
 cfg.type_                 # "position", "vector", or "dexpilot"
 cfg.urdf_path             # path stored in YAML
 cfg.target_joint_names    # optional optimized joint subset

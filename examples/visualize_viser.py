@@ -28,7 +28,7 @@ import numpy as np
 import viser
 from viser.extras import ViserUrdf
 
-import dexi_py
+import dexi_rs
 
 
 DEFAULT_CONFIG = "teleop/allegro_hand_right.yml"
@@ -45,15 +45,15 @@ MARKER_RADIUS = 0.006
 
 @dataclass(frozen=True)
 class RetargetedScene:
-    config: dexi_py.RetargetingConfig
-    retargeting: dexi_py.SeqRetargeting
+    config: dexi_rs.RetargetingConfig
+    retargeting: dexi_rs.SeqRetargeting
     urdf_path: Path
     qpos: np.ndarray
     actual_points: np.ndarray
     target_points: np.ndarray
 
 
-def resolve_urdf_path(config: dexi_py.RetargetingConfig) -> Path:
+def resolve_urdf_path(config: dexi_rs.RetargetingConfig) -> Path:
     """Resolve a packaged URDF path from a loaded dexi config."""
 
     urdf_path = Path(config.urdf_path)
@@ -68,7 +68,7 @@ def resolve_urdf_path(config: dexi_py.RetargetingConfig) -> Path:
     if repo_urdf.exists():
         return repo_urdf
 
-    return dexi_py.asset_path("robots/hands") / urdf_path
+    return dexi_rs.asset_path("robots/hands") / urdf_path
 
 
 def config_scaling_factor(config_name: str) -> float:
@@ -78,7 +78,7 @@ def config_scaling_factor(config_name: str) -> float:
     ``scaling_factor: <number>`` line when scaling differs from 1.0.
     """
 
-    for line in dexi_py.config_path(config_name).read_text(encoding="utf-8").splitlines():
+    for line in dexi_rs.config_path(config_name).read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if stripped.startswith("scaling_factor:"):
             return float(stripped.split(":", 1)[1].strip())
@@ -88,7 +88,7 @@ def config_scaling_factor(config_name: str) -> float:
 def build_retargeted_scene(config_name: str) -> RetargetedScene:
     """Build deterministic retargeting outputs for visualization."""
 
-    config = dexi_py.load_config(config_name)
+    config = dexi_rs.load_config(config_name)
     retargeting = config.build()
     qpos = np.asarray(retargeting.retarget(TARGET_VECTORS.reshape(-1).tolist()), dtype=np.float64)
 

@@ -82,7 +82,7 @@ edition.workspace = true
 license.workspace = true
 
 [lib]
-name = "dexi_py"
+name = "dexi_rs"
 crate-type = ["cdylib"]
 
 [dependencies]
@@ -110,7 +110,7 @@ features = ["pyo3/extension-module"]
 use pyo3::prelude::*;
 
 #[pymodule]
-fn dexi_py(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn dexi_rs(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 ```
@@ -2448,7 +2448,7 @@ impl PySeqRetargeting {
 }
 
 #[pymodule]
-fn dexi_py(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn dexi_rs(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyRobotName>()?;
     m.add_class::<PyRetargetingType>()?;
     m.add_class::<PyHandType>()?;
@@ -2465,7 +2465,7 @@ Edit `crates/dexi/src/lib.rs` — ensure all modules are `pub` (they already are
 - [ ] **Step 3: Build maturin package**
 
 Run: `cd crates/dexi-py && pip install maturin && maturin develop`
-Expected: builds Python package, `import dexi_py` works
+Expected: builds Python package, `import dexi_rs` works
 
 - [ ] **Step 4: Commit**
 

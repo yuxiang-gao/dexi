@@ -1,6 +1,6 @@
 [package]
-name = "dexi-py"
-version = "0.1.2"
+name = "dexi-rs"
+version = "0.2.0"
 edition = "2021"
 description = "Python bindings for dexi via PyO3"
 license = "MIT"
@@ -9,7 +9,7 @@ homepage = "https://github.com/yuxiang-gao/dexi"
 documentation = "https://github.com/yuxiang-gao/dexi/tree/main/docs"
 
 [lib]
-name = "dexi_py"
+name = "dexi_rs"
 crate-type = ["cdylib"]
 
 [dependencies]

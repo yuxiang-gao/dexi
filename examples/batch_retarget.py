@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-import dexi_py
+import dexi_rs
 
 
 def target_for(config_name: str) -> list[float]:
@@ -44,7 +44,7 @@ def main() -> None:
         "teleop/allegro_hand_right_dexpilot.yml",
     ]
     for name in configs:
-        retargeting = dexi_py.load_config(name).build()
+        retargeting = dexi_rs.load_config(name).build()
         fixed = [0.0] * retargeting.fixed_dof
         qpos = retargeting.retarget(target_for(name), fixed_qpos=fixed)
         print(f"{name:42s} dof={len(qpos):2d} target_dof={retargeting.target_dof:2d}")

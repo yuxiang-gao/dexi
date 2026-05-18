@@ -22,12 +22,14 @@ def main() -> None:
         python = venv / "bin" / "python"
         subprocess.run(["uv", "pip", "install", "--python", str(python), str(wheel), "numpy", "viser"], cwd=ROOT, check=True)
         code = """
-import dexi_py
-configs = dexi_py.available_configs()
+import dexi_rs
+import importlib.util
+assert importlib.util.find_spec('dexi_py') is None
+configs = dexi_rs.available_configs()
 assert len(configs) == 39, len(configs)
-path = dexi_py.config_path('teleop/allegro_hand_right.yml')
+path = dexi_rs.config_path('teleop/allegro_hand_right.yml')
 assert path.exists(), path
-retargeting = dexi_py.load_config('teleop/allegro_hand_right.yml').build()
+retargeting = dexi_rs.load_config('teleop/allegro_hand_right.yml').build()
 assert retargeting.joint_names
 qpos = retargeting.retarget([0.03,-0.02,0.08,0.04,0.0,0.09,0.03,0.02,0.085,0.02,0.04,0.07])
 assert len(qpos) == len(retargeting.joint_names)

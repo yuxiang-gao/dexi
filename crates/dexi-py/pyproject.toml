@@ -27,12 +27,12 @@ Homepage = "https://pypi.org/project/dexi-rs/"
 [tool.maturin]
 features = ["pyo3/extension-module"]
 python-source = "python"
-module-name = "dexi_py._native"
+module-name = "dexi_rs._native"
 include = [
   { path = "LICENSE", format = "wheel" },
   { path = "THIRD_PARTY_NOTICES.md", format = "wheel" },
   { path = "LICENSE", format = "sdist" },
   { path = "THIRD_PARTY_NOTICES.md", format = "sdist" },
-  { path = "python/dexi_py/resources/**/*", format = "wheel" },
-  { path = "python/dexi_py/resources/**/*", format = "sdist" },
+  { path = "python/dexi_rs/resources/**/*", format = "wheel" },
+  { path = "python/dexi_rs/resources/**/*", format = "sdist" },
 ]

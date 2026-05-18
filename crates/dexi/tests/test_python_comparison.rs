@@ -1,6 +1,6 @@
 //! Test: Python comparison (skipped if maturin/Python not available).
 
-/// Full comparison requires Python with dex-retargeting and the dexi_py extension
+/// Full comparison requires Python with dex-retargeting and the dexi_rs extension
 /// installed, which is not guaranteed in a Rust test environment. The executable
 /// comparison script is kept in scripts/compare_python_rust.py and can be run from
 /// an appropriately provisioned Python environment.

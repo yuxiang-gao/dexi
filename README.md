@@ -25,7 +25,7 @@ friendly from Python.
 
 - 🦀 **Rust core** — deterministic retargeting, fast optimizer hot paths, no giant
   Python robotics stack required at runtime.
-- 🐍 **Python ergonomics** — `import dexi_py`, load a bundled config, call
+- 🐍 **Python ergonomics** — `import dexi_rs`, load a bundled config, call
   `retarget(...)`, keep moving.
 - 📦 **Batteries included** — 39 YAML configs + the URDFs they need are packaged
   with the wheel.
@@ -55,9 +55,9 @@ Tiny target-vector retargeting example:
 
 ```python
 import numpy as np
-import dexi_py
+import dexi_rs
 
-config = dexi_py.load_config("teleop/allegro_hand_right.yml")
+config = dexi_rs.load_config("teleop/allegro_hand_right.yml")
 retargeting = config.build()
 
 # Allegro vector configs expect four wrist-to-fingertip vectors, flattened.
@@ -84,7 +84,7 @@ uv run examples/quickstart.py
 ## Supported hands and configs 🖐️
 
 Bundled configs live under `configs/` in this repository and inside the Python
-wheel under `dexi_py.resources.configs`.
+wheel under `dexi_rs.resources.configs`.
 
 | Family | Configs |
 | --- | --- |
@@ -99,8 +99,8 @@ wheel under `dexi_py.resources.configs`.
 List available package configs:
 
 ```python
-import dexi_py
-print(dexi_py.available_configs())
+import dexi_rs
+print(dexi_rs.available_configs())
 ```
 
 ## Examples you can run with uv ⚡

@@ -46,7 +46,7 @@ def available_configs(kind: str | None = None) -> list[str]:
         ``"teleop"`` for vector/DexPilot retargeting.
     """
 
-    base = il_resources.files("dexi_py.resources.configs")
+    base = il_resources.files("dexi_rs.resources.configs")
     kinds = [kind] if kind else [entry.name for entry in base.iterdir() if entry.is_dir()]
 
     configs: list[str] = []
@@ -70,7 +70,7 @@ def config_path(name: str | Path) -> Path:
     parts = _split_resource_path(name)
     if parts[0] == "configs":
         parts = parts[1:]
-    return _resource_file("dexi_py.resources.configs", Path(*parts))
+    return _resource_file("dexi_rs.resources.configs", Path(*parts))
 
 
 def asset_path(name: str | Path = "robots/hands") -> Path:
@@ -79,7 +79,7 @@ def asset_path(name: str | Path = "robots/hands") -> Path:
     parts = _split_resource_path(name)
     if parts[0] == "assets":
         parts = parts[1:]
-    return _resource_file("dexi_py.resources.assets", Path(*parts))
+    return _resource_file("dexi_rs.resources.assets", Path(*parts))
 
 
 def load_config(name: str | Path) -> RetargetingConfig:

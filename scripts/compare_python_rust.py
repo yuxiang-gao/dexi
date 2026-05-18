@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare reference dex-retargeting against the Rust dexi_py binding.
+"""Compare reference dex-retargeting against the Rust dexi_rs binding.
 
 The script exercises every supported reference YAML config by default:
 
@@ -81,14 +81,14 @@ def import_packages() -> tuple[Any, Any]:
     from dex_retargeting.retargeting_config import RetargetingConfig as PyConfig
 
     try:
-        import dexi_py
+        import dexi_rs
     except ImportError as exc:
         raise SystemExit(
-            "Could not import dexi_py. Build/install it first, e.g.\n"
+            "Could not import dexi_rs. Build/install it first, e.g.\n"
             "  maturin develop --manifest-path crates/dexi-py/Cargo.toml"
         ) from exc
 
-    return PyConfig, dexi_py
+    return PyConfig, dexi_rs
 
 
 def config_paths() -> list[Path]:
@@ -275,7 +275,7 @@ def compare_one(
     input_mode: str,
     perf_repeats: int,
     py_config_cls: Any,
-    dexi_py: Any,
+    dexi_rs: Any,
 ) -> ComparisonRow:
     rel = path.relative_to(ROOT).as_posix()
     runtime_path, cfg = materialize_absolute_config(path, tmp_dir)
@@ -288,7 +288,7 @@ def compare_one(
         python_build_ms = (time.perf_counter() - started) * 1000.0
 
         started = time.perf_counter()
-        rust_config = dexi_py.RetargetingConfig.from_file(str(runtime_path))
+        rust_config = dexi_rs.RetargetingConfig.from_file(str(runtime_path))
         rust_retargeting = rust_config.build()
         rust_build_ms = (time.perf_counter() - started) * 1000.0
 
@@ -436,7 +436,7 @@ def main() -> int:
     args = parser.parse_args()
 
     os.environ.setdefault("OMP_NUM_THREADS", "1")
-    py_config_cls, dexi_py = import_packages()
+    py_config_cls, dexi_rs = import_packages()
     py_config_cls.set_default_urdf_dir(REFERENCE_URDF_DIR)
 
     paths = args.configs or config_paths()
@@ -455,7 +455,7 @@ def main() -> int:
                 args.input_mode,
                 args.perf_repeats,
                 py_config_cls,
-                dexi_py,
+                dexi_rs,
             )
             rows.append(row)
             print(

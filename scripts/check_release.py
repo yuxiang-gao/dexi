@@ -16,7 +16,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CARGO_PACKAGE = "dexi-py"
+CARGO_PACKAGE = "dexi-rs"
 PYPI_PACKAGE = "dexi-rs"
 
 
@@ -125,12 +125,12 @@ def check_resource_drift() -> None:
     pairs = [
         (
             ROOT / "configs",
-            ROOT / "crates/dexi-py/python/dexi_py/resources/configs",
+            ROOT / "crates/dexi-py/python/dexi_rs/resources/configs",
             "configs",
         ),
         (
             ROOT / "assets/robots/hands",
-            ROOT / "crates/dexi-py/python/dexi_py/resources/assets/robots/hands",
+            ROOT / "crates/dexi-py/python/dexi_rs/resources/assets/robots/hands",
             "robot assets",
         ),
     ]

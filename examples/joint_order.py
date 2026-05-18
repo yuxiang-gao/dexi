@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import argparse
 
-import dexi_py
+import dexi_rs
 
 
 def main() -> None:
@@ -16,7 +16,7 @@ def main() -> None:
     parser.add_argument("config", nargs="?", default="teleop/allegro_hand_right.yml")
     args = parser.parse_args()
 
-    retargeting = dexi_py.load_config(args.config).build()
+    retargeting = dexi_rs.load_config(args.config).build()
     print(args.config)
     for index, name in enumerate(retargeting.joint_names):
         print(f"{index:02d} {name}")

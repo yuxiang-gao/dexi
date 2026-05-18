@@ -3,9 +3,9 @@
 ## Load a packaged config
 
 ```python
-import dexi_py
+import dexi_rs
 
-config = dexi_py.load_config("teleop/allegro_hand_right.yml")
+config = dexi_rs.load_config("teleop/allegro_hand_right.yml")
 retargeting = config.build()
 ```
 

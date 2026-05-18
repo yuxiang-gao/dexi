@@ -41,7 +41,7 @@ import viser
 import yaml
 from viser.extras import ViserUrdf
 
-import dexi_py
+import dexi_rs
 
 
 DEFAULT_CONFIG_BY_HAND = {
@@ -129,14 +129,14 @@ class FrameSample:
     wrist_frame: np.ndarray
 
 
-def resolve_urdf_path(config: dexi_py.RetargetingConfig) -> Path:
+def resolve_urdf_path(config: dexi_rs.RetargetingConfig) -> Path:
     urdf_path = Path(config.urdf_path)
     if urdf_path.is_absolute():
         return urdf_path
     repo_urdf = REPO_ROOT / "assets" / "robots" / "hands" / urdf_path
     if repo_urdf.exists():
         return repo_urdf
-    return dexi_py.asset_path("robots/hands") / urdf_path
+    return dexi_rs.asset_path("robots/hands") / urdf_path
 
 
 def hand_from_config_name(config_name: str) -> str:
@@ -160,7 +160,7 @@ def parse_tip_order(value: str | None, hand: str) -> list[str]:
 def load_vector_config(
     config_name: str, tip_order: list[str] | None = None, scale: float | None = None
 ) -> VectorConfig:
-    raw = yaml.safe_load(dexi_py.config_path(config_name).read_text(encoding="utf-8"))[
+    raw = yaml.safe_load(dexi_rs.config_path(config_name).read_text(encoding="utf-8"))[
         "retargeting"
     ]
     if raw["type"].lower() != "vector":
@@ -180,7 +180,7 @@ def load_vector_config(
             f"{len(raw['target_task_link_names'])} task links"
         )
 
-    cfg = dexi_py.load_config(config_name)
+    cfg = dexi_rs.load_config(config_name)
     return VectorConfig(
         name=config_name,
         urdf_path=resolve_urdf_path(cfg),
@@ -527,7 +527,7 @@ def ensure_hand_landmarker_model() -> Path:
 class ViserRetargetingScene:
     def __init__(self, args: argparse.Namespace, vector_cfg: VectorConfig) -> None:
         self.vector_cfg = vector_cfg
-        self.config = dexi_py.load_config(vector_cfg.name)
+        self.config = dexi_rs.load_config(vector_cfg.name)
         self.retargeting = self.config.build()
 
         mesh_dir = vector_cfg.urdf_path.parent / "meshes"

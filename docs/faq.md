@@ -2,7 +2,7 @@
 
 ## What is the Python package name?
 
-Install `dexi-rs`; import `dexi_py`.
+Install `dexi-rs`; import `dexi_rs`.
 
 ## Why are returned qpos values not in my simulator's order?
 

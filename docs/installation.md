@@ -11,7 +11,7 @@ uv pip install dexi-rs
 Import name and distribution name differ intentionally:
 
 ```python
-import dexi_py  # distribution: dexi-rs
+import dexi_rs  # distribution: dexi-rs
 ```
 
 ## Local development
