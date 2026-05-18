@@ -1,8 +1,8 @@
 # dexi-rs
 
 `dexi-rs` is a fast hand-retargeting package backed by a Rust engine. It loads
-YAML config files and bundled robot-hand URDF assets, then maps 3D human-hand targets to
-robot-hand joint positions.
+YAML config files from filesystem paths plus bundled robot-hand URDF assets,
+then maps 3D human-hand targets to robot-hand joint positions.
 
 Install distribution `dexi-rs`; import module `dexi_rs`.
 
@@ -15,7 +15,7 @@ uv pip install dexi-rs
 ```python
 import dexi_rs
 
-cfg = dexi_rs.load_config("configs/teleop/allegro_hand_right.yml")
+cfg = dexi_rs.load_config("configs/teleop/allegro_hand_right.yml")  # direct filesystem path
 retargeting = cfg.build()
 
 # Four wrist-to-fingertip vectors for this Allegro vector config.
@@ -28,6 +28,10 @@ target = [
 qpos = retargeting.retarget(target)
 print(dict(zip(retargeting.joint_names, qpos)))
 ```
+
+The wheel bundles robot URDF/mesh assets only. YAML configs are regular files:
+use this repository's `configs/` directory, copy a config into your own project,
+or pass any custom config path to `load_config()`.
 
 ## Resource helpers
 

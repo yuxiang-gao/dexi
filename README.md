@@ -51,13 +51,18 @@ just test-wheel
 
 ## Quickstart
 
-Tiny target-vector retargeting example:
+Tiny target-vector retargeting example from a source checkout. `dexi-rs` ships
+robot URDF/mesh assets in the wheel, but YAML configs are regular files that you
+pass in explicitly from this repo or from your own project:
 
 ```python
+from pathlib import Path
+
 import numpy as np
 import dexi_rs
 
-config = dexi_rs.load_config("configs/teleop/allegro_hand_right.yml")
+config_path = Path("configs/teleop/allegro_hand_right.yml")
+config = dexi_rs.load_config(config_path)
 retargeting = config.build()
 
 # Allegro vector configs expect four wrist-to-fingertip vectors, flattened.
@@ -85,7 +90,8 @@ uv run examples/quickstart.py
 
 Example configs live under `configs/` in this repository. They are normal YAML
 files, so copy/edit them in your own project and pass their filesystem path to
-`dexi_rs.load_config(...)`.
+`dexi_rs.load_config(...)`. The Python wheel bundles robot URDF/mesh assets,
+not YAML configs.
 
 | Family | Configs |
 | --- | --- |
@@ -125,9 +131,9 @@ configuration, and overlays the wrist axis plus fingertip targets. It does not
 render videos or SVG files.
 
 <p align="center">
-  <video src="docs/assets/fourier-retargeting-demo.mp4" controls muted loop playsinline width="100%"></video>
+  <img src="docs/assets/fourier-retargeting-demo.gif" alt="Fourier hand retargeting demo in viser" width="100%">
   <br>
-  <a href="docs/assets/fourier-retargeting-demo.mp4">Watch the Fourier retargeting demo video</a>
+  <a href="docs/assets/fourier-retargeting-demo.gif">Watch the Fourier retargeting demo GIF</a>
 </p>
 
 Visualizer presets include both Fourier and Allegro hands:
