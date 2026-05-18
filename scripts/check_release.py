@@ -97,7 +97,7 @@ def check_dist_contents() -> None:
     artifacts = sorted(dist.glob("*"))
     if not artifacts:
         raise SystemExit("dist/ is empty; run build first")
-    banned = ["reference/", ".env", "target/", ".DS_Store", "/meshes/", "__pycache__", ".pyc"]
+    banned = ["reference/", ".env", "target/", ".DS_Store", "__pycache__", ".pyc"]
     for artifact in artifacts:
         members = _dist_members(artifact)
         for member in members:

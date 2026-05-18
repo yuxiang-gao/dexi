@@ -17,6 +17,6 @@ where available:
   separate adjacent Panda license file was present in that asset tree.
 
 Only the YAML configs and URDF files needed by the shipped examples/configs are
-included. Mesh directories are intentionally not packaged because the Rust core
-parses kinematics, limits, and mimic tags from URDFs and the user-facing
-visualization examples render 3D point clouds rather than robot meshes.
+included for most hands. The Allegro visual/collision mesh directory is also
+bundled because the viser example loads the URDF as a visible hand model and
+updates it to the retargeted joint configuration.

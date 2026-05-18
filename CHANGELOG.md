@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- Upgrade the viser example to load the Allegro URDF mesh model.
+- Apply the retargeted joint configuration to the displayed hand.
+- Overlay wrist axes, fingertip targets, retargeted fingertips, and residual lines.
+
 ## 0.1.1
 
 - Add Rust retargeting core for position, vector, and DexPilot objectives.

@@ -17,7 +17,7 @@ install checks, examples, and release-safety checks.
 Publishing requires a clean tree and an exact tag on the current commit:
 
 ```bash
-git tag v0.1.1
+git tag v0.1.2
 ```
 
 The tag must match the Cargo package version exactly.

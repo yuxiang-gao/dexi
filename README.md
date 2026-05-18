@@ -29,7 +29,7 @@ friendly from Python.
   `retarget(...)`, keep moving.
 - 📦 **Batteries included** — 39 YAML configs + the URDFs they need are packaged
   with the wheel.
-- 👁 **Visual feedback** — uv-runnable `viser` example for live 3D point clouds.
+- 👁 **Visual feedback** — uv-runnable `viser` example with a live URDF hand model, wrist axes, and fingertip targets.
 - 🧪 **Maintainer-grade parity checks** — Python-vs-Rust comparison tooling keeps
   the implementation honest.
 - 🛠 **Vibecoding-friendly** — `just setup`, `just preflight`, readable docs,
@@ -114,14 +114,26 @@ uv run examples/batch_retarget.py
 uv run examples/joint_order.py
 uv run examples/visualize_viser.py --smoke-test
 uv run examples/visualize_viser.py
+uv run examples/vector_retarget_viser.py --smoke-test
 ```
 
 The non-smoke `visualize_viser.py` command starts a local browser-based 3D
-point-cloud viewer. It does not render videos or SVG files.
+viewer, loads the Allegro URDF hand model, applies the retargeted joint
+configuration, and overlays the wrist axis plus fingertip targets. It does not
+render videos or SVG files.
+
+For video/webcam retargeting, `vector_retarget_viser.py` tracks a human hand,
+updates the URDF robot hand, and shows the camera frame, tracked landmarks,
+fingertip targets, actual fingertips, and residuals in the same viser scene:
+
+```bash
+uv run examples/vector_retarget_viser.py --video path/to/hand_video.mp4
+uv run examples/vector_retarget_viser.py --webcam 0
+```
 
 ```bash
 uv run examples/visualize_viser.py
-# open the printed local URL, then orbit the point cloud in your browser
+# open the printed local URL, then orbit the retargeted hand in your browser
 ```
 
 ## Documentation map 🗺️

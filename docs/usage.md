@@ -57,4 +57,11 @@ links = ["wrist", "link_15.0_tip", "link_3.0_tip", "link_7.0_tip", "link_11.0_ti
 points = retargeting.link_positions(qpos, links)
 ```
 
-See `examples/visualize_viser.py` for an interactive 3D point-cloud viewer.
+See `examples/visualize_viser.py` for an interactive viser scene with the
+retargeted URDF hand model, wrist axis, fingertip targets, actual fingertips,
+and residual lines.
+
+For live perception input, `examples/vector_retarget_viser.py` reads a video or
+webcam with OpenCV, tracks a human hand with MediaPipe, retargets the vector
+targets, and visualizes the camera frame, tracked landmarks, robot hand, targets,
+actual fingertips, and residuals in viser.
