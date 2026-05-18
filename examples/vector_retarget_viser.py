@@ -45,8 +45,8 @@ import dexi_rs
 
 
 DEFAULT_CONFIG_BY_HAND = {
-    "left": "configs/teleop/allegro_hand_left.yml",
-    "right": "configs/teleop/allegro_hand_right.yml",
+    "left": "configs/teleop/fourier_hand_left_6dof.yml",
+    "right": "configs/teleop/fourier_hand_right_6dof.yml",
 }
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WRIST_LINK = "wrist"
@@ -57,8 +57,7 @@ FINGERTIP_LANDMARKS = {
     "ring": 16,
 }
 # The robot config controls link order. These names control which MediaPipe tip
-# drives each robot link. Left Allegro link order is mirrored in the YAML, so the
-# default left mapping is thumb/ring/middle/index rather than thumb/index/... .
+# drives each robot link.
 DEFAULT_TIP_ORDER_BY_HAND = {
     "left": ["thumb", "index", "middle", "ring"],
     "right": ["thumb", "index", "middle", "ring"],
@@ -109,6 +108,7 @@ HAND_LANDMARKER_URL = (
 class VectorConfig:
     name: str
     urdf_path: Path
+    wrist_link: str
     origin_links: list[str]
     task_links: list[str]
     origin_indices: np.ndarray
@@ -184,6 +184,7 @@ def load_vector_config(
     return VectorConfig(
         name=config_name,
         urdf_path=resolve_urdf_path(cfg),
+        wrist_link=str(raw["target_origin_link_names"][0]),
         origin_links=list(raw["target_origin_link_names"]),
         task_links=list(raw["target_task_link_names"]),
         origin_indices=indices[0],
@@ -530,15 +531,10 @@ class ViserRetargetingScene:
         self.config = dexi_rs.load_config(vector_cfg.name)
         self.retargeting = self.config.build()
 
-        mesh_dir = vector_cfg.urdf_path.parent / "meshes"
         if args.no_meshes:
             self.load_meshes = False
             self.mesh_count = 0
         else:
-            if not mesh_dir.exists():
-                raise FileNotFoundError(
-                    f"mesh directory not found for URDF visualization: {mesh_dir}"
-                )
             self.mesh_count = validate_visual_meshes(vector_cfg.urdf_path)
             self.load_meshes = True
 
@@ -657,11 +653,11 @@ class ViserRetargetingScene:
             marker.position = tuple(point.tolist())
         for marker, point in zip(self.actual_markers, actual):
             marker.position = tuple(point.tolist())
-        wrist = by_link.get(WRIST_LINK, origins[0])
+        wrist = by_link.get(self.vector_cfg.wrist_link, origins[0])
         self.wrist_axis.position = tuple(wrist.tolist())
         if self.load_meshes:
             wrist_transform = self.urdf._urdf.get_transform(
-                WRIST_LINK, self.urdf._urdf.base_link
+                self.vector_cfg.wrist_link, self.urdf._urdf.base_link
             )  # noqa: SLF001
             wrist_wxyz = matrix_to_wxyz(wrist_transform[:3, :3])
         else:
@@ -806,7 +802,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--config",
-        help="Vector config file to retarget. Defaults to the local Allegro config matching --hand.",
+        help="Vector config file to retarget. Defaults to the local Fourier 6DOF config matching --hand.",
     )
     parser.add_argument(
         "--video", help="Video file to read. If omitted, the webcam is used."

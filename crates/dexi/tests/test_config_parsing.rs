@@ -107,6 +107,8 @@ fn test_config_urdf_path_resolution() {
         "offline/ability_hand_left.yml",
         "teleop/allegro_hand_left.yml",
         "teleop/allegro_hand_left_dexpilot.yml",
+        "teleop/fourier_hand_left_6dof.yml",
+        "teleop/fourier_hand_right_12dof.yml",
     ];
 
     for config_name in &configs {

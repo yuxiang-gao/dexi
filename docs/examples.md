@@ -43,7 +43,7 @@ Interactive mode starts a local `viser` server:
 uv run examples/visualize_viser.py
 ```
 
-The example loads the Allegro URDF mesh model, applies the retargeted joint
+The example loads the Fourier 6DOF URDF mesh model by default, applies the retargeted joint
 configuration, and overlays the wrist axis, fingertip targets, actual fingertip
 positions, and residual lines. It does not write videos or SVG artifacts.
 

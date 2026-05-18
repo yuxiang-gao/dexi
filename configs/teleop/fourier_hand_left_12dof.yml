@@ -1,0 +1,23 @@
+retargeting:
+  type: vector
+  urdf_path: fourier_hand/base_urdf/fourier_left_hand_12dof.urdf
+
+  target_origin_link_names: ["L_hand_wrist_link", "L_hand_wrist_link", "L_hand_wrist_link", "L_hand_wrist_link"]
+  target_task_link_names: ["L_thumb_tip_link", "L_index_tip_link", "L_middle_tip_link", "L_ring_tip_link"]
+  target_joint_names:
+    - "L_thumb_proximal_yaw_joint"
+    - "L_thumb_proximal_pitch_joint"
+    - "L_thumb_distal_joint"
+    - "L_index_metacarpal_joint"
+    - "L_index_proximal_joint"
+    - "L_index_intermediate_joint"
+    - "L_middle_proximal_joint"
+    - "L_middle_intermediate_joint"
+    - "L_ring_proximal_joint"
+    - "L_ring_intermediate_joint"
+    - "L_pinky_proximal_joint"
+    - "L_pinky_intermediate_joint"
+  scaling_factor: 1.0
+
+  target_link_human_indices: [[0, 0, 0, 0], [4, 8, 12, 16]]
+  low_pass_alpha: 0.2

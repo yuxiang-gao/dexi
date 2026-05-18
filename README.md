@@ -95,6 +95,7 @@ files, so copy/edit them in your own project and pass their filesystem path to
 | LEAP | left/right, vector, position, DexPilot |
 | Ability | left/right, vector, position, DexPilot |
 | Inspire | left/right, vector, position, DexPilot |
+| Fourier | left/right, 6DOF + 12DOF vector |
 | Panda gripper | vector, position, DexPilot |
 
 List configs in a checkout:
@@ -119,7 +120,7 @@ uv run examples/vector_retarget_viser.py --smoke-test
 ```
 
 The non-smoke `visualize_viser.py` command starts a local browser-based 3D
-viewer, loads the Allegro URDF hand model, applies the retargeted joint
+viewer, loads the Fourier 6DOF URDF hand model by default, applies the retargeted joint
 configuration, and overlays the wrist axis plus fingertip targets. It does not
 render videos or SVG files.
 

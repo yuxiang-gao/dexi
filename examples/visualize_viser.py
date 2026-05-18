@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["dexi-rs>=0.3.0", "numpy", "viser", "yourdfpy"]
+# dependencies = ["dexi-rs>=0.3.0", "numpy", "pyyaml", "viser", "yourdfpy"]
 # ///
 """Visualize a retargeted URDF hand model with viser.
 
@@ -26,16 +26,14 @@ from xml.etree import ElementTree
 
 import numpy as np
 import viser
+import yaml
 from viser.extras import ViserUrdf
 
 import dexi_rs
 
 
-DEFAULT_CONFIG = "configs/teleop/allegro_hand_right.yml"
+DEFAULT_CONFIG = "configs/teleop/fourier_hand_right_6dof.yml"
 REPO_ROOT = Path(__file__).resolve().parents[1]
-WRIST_LINK = "wrist"
-FINGERTIP_LINKS = ["link_15.0_tip", "link_3.0_tip", "link_7.0_tip", "link_11.0_tip"]
-LINKS = [WRIST_LINK, *FINGERTIP_LINKS]
 TARGET_VECTORS = np.array(
     [[0.03, -0.02, 0.08], [0.04, 0.0, 0.09], [0.03, 0.02, 0.085], [0.02, 0.04, 0.07]],
     dtype=np.float64,
@@ -48,6 +46,8 @@ class RetargetedScene:
     config: dexi_rs.RetargetingConfig
     retargeting: dexi_rs.SeqRetargeting
     urdf_path: Path
+    wrist_link: str
+    fingertip_links: list[str]
     qpos: np.ndarray
     actual_points: np.ndarray
     target_points: np.ndarray
@@ -71,30 +71,29 @@ def resolve_urdf_path(config: dexi_rs.RetargetingConfig) -> Path:
     return dexi_rs.asset_path("robots/hands") / urdf_path
 
 
-def config_scaling_factor(config_name: str) -> float:
-    """Read the vector scaling factor from a YAML config file.
+def load_vector_yaml(config_name: str) -> dict:
+    """Load the vector-retargeting part of a YAML config file."""
 
-    The example avoids a PyYAML dependency; the example configs use a simple
-    ``scaling_factor: <number>`` line when scaling differs from 1.0.
-    """
-
-    for line in Path(config_name).read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if stripped.startswith("scaling_factor:"):
-            return float(stripped.split(":", 1)[1].strip())
-    return 1.0
+    raw = yaml.safe_load(Path(config_name).read_text(encoding="utf-8"))["retargeting"]
+    if raw["type"].lower() != "vector":
+        raise ValueError(f"{config_name} is {raw['type']!r}; this visualizer expects a vector config")
+    return raw
 
 
 def build_retargeted_scene(config_name: str) -> RetargetedScene:
     """Build deterministic retargeting outputs for visualization."""
 
+    raw = load_vector_yaml(config_name)
+    wrist_link = str(raw["target_origin_link_names"][0])
+    fingertip_links = list(raw["target_task_link_names"])
+    links = [wrist_link, *fingertip_links]
     config = dexi_rs.load_config(config_name)
     retargeting = config.build()
     qpos = np.asarray(retargeting.retarget(TARGET_VECTORS.reshape(-1).tolist()), dtype=np.float64)
 
-    actual_points = np.asarray(retargeting.link_positions(qpos.tolist(), LINKS), dtype=np.float32)
+    actual_points = np.asarray(retargeting.link_positions(qpos.tolist(), links), dtype=np.float32)
     wrist_point = actual_points[0]
-    target_points = (wrist_point + TARGET_VECTORS.astype(np.float32) * config_scaling_factor(config_name)).astype(
+    target_points = (wrist_point + TARGET_VECTORS.astype(np.float32) * float(raw.get("scaling_factor", 1.0))).astype(
         np.float32
     )
 
@@ -102,6 +101,8 @@ def build_retargeted_scene(config_name: str) -> RetargetedScene:
         config=config,
         retargeting=retargeting,
         urdf_path=resolve_urdf_path(config),
+        wrist_link=wrist_link,
+        fingertip_links=fingertip_links,
         qpos=qpos,
         actual_points=actual_points,
         target_points=target_points,
@@ -135,8 +136,8 @@ def validate_visual_meshes(urdf_path: Path) -> int:
         if not filename:
             continue
         if filename.startswith("package://"):
-            # The packaged Allegro assets use plain relative paths. Keep this
-            # example explicit rather than guessing ROS package roots.
+            # Shipped example assets use plain relative paths. Keep this example
+            # explicit rather than guessing ROS package roots.
             missing.append(Path(filename))
             continue
         mesh_path = Path(filename)
@@ -237,7 +238,7 @@ def add_overlays(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default=DEFAULT_CONFIG, help="Packaged teleop vector config to visualize")
+    parser.add_argument("--config", default=DEFAULT_CONFIG, help="Vector config file to visualize")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--no-meshes", action="store_true", help="Load URDF frames only, without visual meshes")
@@ -251,13 +252,10 @@ def main() -> None:
     actual_points = scene.actual_points
     target_points = scene.target_points
 
-    mesh_dir = Path(urdf_path).parent / "meshes"
     if args.no_meshes:
         load_meshes = False
         mesh_count = 0
     else:
-        if not mesh_dir.exists():
-            raise FileNotFoundError(f"mesh directory not found for URDF visualization: {mesh_dir}")
         mesh_count = validate_visual_meshes(Path(urdf_path))
         load_meshes = True
 
@@ -279,7 +277,7 @@ def main() -> None:
     urdf_vis.update_cfg(urdf_qpos)
 
     if load_meshes:
-        wrist_transform = urdf_vis._urdf.get_transform(WRIST_LINK, urdf_vis._urdf.base_link)  # noqa: SLF001
+        wrist_transform = urdf_vis._urdf.get_transform(scene.wrist_link, urdf_vis._urdf.base_link)  # noqa: SLF001
         wrist_wxyz = matrix_to_wxyz(wrist_transform[:3, :3])
     else:
         wrist_wxyz = (1.0, 0.0, 0.0, 0.0)
@@ -288,7 +286,7 @@ def main() -> None:
     residual = np.linalg.norm(np.asarray(actual_points)[1:] - np.asarray(target_points), axis=1)
     if args.smoke_test:
         assert len(urdf_vis.get_actuated_joint_names()) == len(urdf_qpos)
-        assert len(target_points) == len(FINGERTIP_LINKS)
+        assert len(target_points) == len(scene.fingertip_links)
         if load_meshes:
             assert mesh_count > 0
             assert len(urdf_vis._meshes) > 0  # noqa: SLF001

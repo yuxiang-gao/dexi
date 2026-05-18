@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+- Add Fourier 6DOF and 12DOF hand URDF assets and example configs.
+- Default the viser visualizers to Fourier 6DOF hand configs.
+- Resolve visualizer wrist/fingertip links and URDF meshes from the selected config.
+
 ## 0.3.0
 
 - Breaking: stop bundling YAML configs inside the wheel.

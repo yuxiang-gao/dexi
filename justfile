@@ -4,7 +4,7 @@ PYTHON := ".venv/bin/python"
 
 setup:
     uv venv .venv
-    uv pip install --python {{PYTHON}} maturin twine numpy viser yourdfpy
+    uv pip install --python {{PYTHON}} maturin twine numpy pyyaml viser yourdfpy
 
 fmt:
     cargo fmt --check
@@ -28,7 +28,7 @@ test-wheel:
     python3 scripts/test_wheel.py
 
 examples:
-    uv pip install --python {{PYTHON}} --force-reinstall dist/*.whl numpy viser yourdfpy
+    uv pip install --python {{PYTHON}} --force-reinstall dist/*.whl numpy pyyaml viser yourdfpy
     {{PYTHON}} examples/list_configs.py
     {{PYTHON}} examples/quickstart.py
     {{PYTHON}} examples/batch_retarget.py

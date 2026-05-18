@@ -51,5 +51,5 @@ asset_root = dexi_rs.asset_path("robots/hands")
   for visualization.
 
 Repository config families cover Allegro, Shadow, Schunk SVH, LEAP, Ability,
-Inspire, and Panda gripper hands for position, vector, and DexPilot-style
-retargeting where available.
+Inspire, Fourier, and Panda gripper hands for position, vector, and
+DexPilot-style retargeting where available.
