@@ -124,6 +124,12 @@ viewer, loads the Fourier 6DOF URDF hand model by default, applies the retargete
 configuration, and overlays the wrist axis plus fingertip targets. It does not
 render videos or SVG files.
 
+<p align="center">
+  <video src="docs/assets/fourier-retargeting-demo.mp4" controls muted loop playsinline width="100%"></video>
+  <br>
+  <a href="docs/assets/fourier-retargeting-demo.mp4">Watch the Fourier retargeting demo video</a>
+</p>
+
 Visualizer presets include both Fourier and Allegro hands:
 
 ```bash
