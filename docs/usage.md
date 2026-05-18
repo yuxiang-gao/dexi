@@ -1,13 +1,16 @@
 # Usage guide
 
-## Load a packaged config
+## Load a config file
 
 ```python
 import dexi_rs
 
-config = dexi_rs.load_config("teleop/allegro_hand_right.yml")
+config = dexi_rs.load_config("configs/teleop/allegro_hand_right.yml")
 retargeting = config.build()
 ```
+
+Configs are normal YAML files in your checkout or application. The wheel bundles
+robot assets, but it does not bundle YAML configs.
 
 ## Retarget one frame
 

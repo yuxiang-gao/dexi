@@ -12,7 +12,8 @@ import dexi_rs
 
 
 def main() -> None:
-    retargeting = dexi_rs.load_config("teleop/allegro_hand_right.yml").build()
+    config = "configs/teleop/allegro_hand_right.yml"
+    retargeting = dexi_rs.load_config(config).build()
     target_vectors = np.array(
         [
             [0.03, -0.02, 0.08],
@@ -24,7 +25,7 @@ def main() -> None:
     )
     qpos = retargeting.retarget(target_vectors.reshape(-1).tolist())
 
-    print(f"config: teleop/allegro_hand_right.yml")
+    print(f"config: {config}")
     print(f"dof: {len(qpos)}")
     for name, value in zip(retargeting.joint_names, qpos):
         print(f"{name:>28s}: {value: .6f}")

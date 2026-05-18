@@ -20,16 +20,19 @@ def main() -> None:
         venv = Path(tmp) / ".venv"
         subprocess.run(["uv", "venv", str(venv)], cwd=ROOT, check=True)
         python = venv / "bin" / "python"
-        subprocess.run(["uv", "pip", "install", "--python", str(python), str(wheel), "numpy", "viser"], cwd=ROOT, check=True)
+        subprocess.run(["uv", "pip", "install", "--python", str(python), str(wheel), "numpy", "viser", "yourdfpy"], cwd=ROOT, check=True)
         code = """
 import dexi_rs
 import importlib.util
+from pathlib import Path
 assert importlib.util.find_spec('dexi_py') is None
-configs = dexi_rs.available_configs()
+root = Path.cwd()
+config = root / 'configs/teleop/allegro_hand_right.yml'
+configs = dexi_rs.available_configs(root / 'configs')
 assert len(configs) == 39, len(configs)
-path = dexi_rs.config_path('teleop/allegro_hand_right.yml')
+path = dexi_rs.config_path(config)
 assert path.exists(), path
-retargeting = dexi_rs.load_config('teleop/allegro_hand_right.yml').build()
+retargeting = dexi_rs.load_config(config).build()
 assert retargeting.joint_names
 qpos = retargeting.retarget([0.03,-0.02,0.08,0.04,0.0,0.09,0.03,0.02,0.085,0.02,0.04,0.07])
 assert len(qpos) == len(retargeting.joint_names)

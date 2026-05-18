@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["dexi-rs", "numpy", "viser"]
+# dependencies = ["dexi-rs", "numpy", "viser", "yourdfpy"]
 # ///
 """Visualize a retargeted URDF hand model with viser.
 
@@ -31,7 +31,7 @@ from viser.extras import ViserUrdf
 import dexi_rs
 
 
-DEFAULT_CONFIG = "teleop/allegro_hand_right.yml"
+DEFAULT_CONFIG = "configs/teleop/allegro_hand_right.yml"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WRIST_LINK = "wrist"
 FINGERTIP_LINKS = ["link_15.0_tip", "link_3.0_tip", "link_7.0_tip", "link_11.0_tip"]
@@ -54,7 +54,7 @@ class RetargetedScene:
 
 
 def resolve_urdf_path(config: dexi_rs.RetargetingConfig) -> Path:
-    """Resolve a packaged URDF path from a loaded dexi config."""
+    """Resolve the URDF asset referenced by a loaded dexi config."""
 
     urdf_path = Path(config.urdf_path)
     if urdf_path.is_absolute():
@@ -72,13 +72,13 @@ def resolve_urdf_path(config: dexi_rs.RetargetingConfig) -> Path:
 
 
 def config_scaling_factor(config_name: str) -> float:
-    """Read the vector scaling factor from a packaged YAML config.
+    """Read the vector scaling factor from a YAML config file.
 
-    The example avoids a PyYAML dependency; the shipped configs use a simple
+    The example avoids a PyYAML dependency; the example configs use a simple
     ``scaling_factor: <number>`` line when scaling differs from 1.0.
     """
 
-    for line in dexi_rs.config_path(config_name).read_text(encoding="utf-8").splitlines():
+    for line in Path(config_name).read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if stripped.startswith("scaling_factor:"):
             return float(stripped.split(":", 1)[1].strip())

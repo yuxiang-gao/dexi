@@ -97,7 +97,7 @@ def check_dist_contents() -> None:
     artifacts = sorted(dist.glob("*"))
     if not artifacts:
         raise SystemExit("dist/ is empty; run build first")
-    banned = ["reference/", ".env", "target/", ".DS_Store", "__pycache__", ".pyc"]
+    banned = ["reference/", ".env", "target/", ".DS_Store", "__pycache__", ".pyc", "resources/configs"]
     for artifact in artifacts:
         members = _dist_members(artifact)
         for member in members:
@@ -123,11 +123,6 @@ def _tracked_files(root: Path) -> dict[Path, str]:
 
 def check_resource_drift() -> None:
     pairs = [
-        (
-            ROOT / "configs",
-            ROOT / "crates/dexi-py/python/dexi_rs/resources/configs",
-            "configs",
-        ),
         (
             ROOT / "assets/robots/hands",
             ROOT / "crates/dexi-py/python/dexi_rs/resources/assets/robots/hands",

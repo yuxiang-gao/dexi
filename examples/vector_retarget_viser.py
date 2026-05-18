@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 # /// script
 # requires-python = ">=3.10,<3.13"
-# dependencies = ["dexi-rs", "mediapipe", "numpy", "opencv-python", "pyyaml", "viser"]
+# dependencies = ["dexi-rs", "mediapipe", "numpy", "opencv-python", "pyyaml", "viser", "yourdfpy"]
 # ///
 """Retarget a human hand video/webcam stream to a robot hand in viser.
 
@@ -45,8 +45,8 @@ import dexi_rs
 
 
 DEFAULT_CONFIG_BY_HAND = {
-    "left": "teleop/allegro_hand_left.yml",
-    "right": "teleop/allegro_hand_right.yml",
+    "left": "configs/teleop/allegro_hand_left.yml",
+    "right": "configs/teleop/allegro_hand_right.yml",
 }
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WRIST_LINK = "wrist"
@@ -160,7 +160,7 @@ def parse_tip_order(value: str | None, hand: str) -> list[str]:
 def load_vector_config(
     config_name: str, tip_order: list[str] | None = None, scale: float | None = None
 ) -> VectorConfig:
-    raw = yaml.safe_load(dexi_rs.config_path(config_name).read_text(encoding="utf-8"))[
+    raw = yaml.safe_load(Path(config_name).read_text(encoding="utf-8"))[
         "retargeting"
     ]
     if raw["type"].lower() != "vector":
@@ -261,7 +261,7 @@ def camera_landmarks_to_robot_frame(
     The retargeting configs expect hand vectors in a wrist-local convention, not
     raw camera coordinates. Estimate the wrist frame from the palm, express all
     landmarks in that frame, then rotate into the robot-hand convention used by
-    the bundled vector configs. This removes the visible 90-degree wrist-frame
+    the local vector configs. This removes the visible 90-degree wrist-frame
     offset between the detected hand and the robot hand.
     """
 
@@ -806,7 +806,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--config",
-        help="Packaged vector config to retarget. Defaults to the bundled Allegro config matching --hand.",
+        help="Vector config file to retarget. Defaults to the local Allegro config matching --hand.",
     )
     parser.add_argument(
         "--video", help="Video file to read. If omitted, the webcam is used."

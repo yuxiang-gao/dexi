@@ -7,11 +7,14 @@ Install distribution `dexi-rs`; import module `dexi_rs`.
 ### Resource helpers
 
 ```python
-dexi_rs.available_configs(kind: str | None = None) -> list[str]
+dexi_rs.available_configs(root: str | Path = "configs", kind: str | None = None) -> list[str]
 dexi_rs.config_path(name: str | Path) -> Path
 dexi_rs.asset_path(name: str | Path = "robots/hands") -> Path
 dexi_rs.load_config(name: str | Path) -> RetargetingConfig
 ```
+
+`load_config()` and `config_path()` accept direct filesystem paths. The wheel
+bundles robot assets, not YAML configs.
 
 ### `RetargetingConfig`
 

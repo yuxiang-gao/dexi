@@ -49,5 +49,6 @@ configs/{offline,teleop}/*.yml
 assets/robots/hands/*/*.urdf
 ```
 
-Installed package layout is exposed through `dexi_rs.config_path()` and
-`dexi_rs.asset_path()`.
+YAML configs are not bundled in the wheel. Load them from your checkout or
+application directory with `dexi_rs.load_config("configs/...")`.
+Bundled robot assets are exposed through `dexi_rs.asset_path()`.

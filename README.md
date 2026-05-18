@@ -25,10 +25,10 @@ friendly from Python.
 
 - 🦀 **Rust core** — deterministic retargeting, fast optimizer hot paths, no giant
   Python robotics stack required at runtime.
-- 🐍 **Python ergonomics** — `import dexi_rs`, load a bundled config, call
+- 🐍 **Python ergonomics** — `import dexi_rs`, load any YAML config path, call
   `retarget(...)`, keep moving.
-- 📦 **Batteries included** — 39 YAML configs + the URDFs they need are packaged
-  with the wheel.
+- 📦 **Assets included** — robot URDF/mesh assets ship with the wheel; YAML
+  configs stay as ordinary files in your repo or app.
 - 👁 **Visual feedback** — uv-runnable `viser` example with a live URDF hand model, wrist axes, and fingertip targets.
 - 🧪 **Maintainer-grade parity checks** — Python-vs-Rust comparison tooling keeps
   the implementation honest.
@@ -57,7 +57,7 @@ Tiny target-vector retargeting example:
 import numpy as np
 import dexi_rs
 
-config = dexi_rs.load_config("teleop/allegro_hand_right.yml")
+config = dexi_rs.load_config("configs/teleop/allegro_hand_right.yml")
 retargeting = config.build()
 
 # Allegro vector configs expect four wrist-to-fingertip vectors, flattened.
@@ -83,8 +83,9 @@ uv run examples/quickstart.py
 
 ## Supported hands and configs 🖐️
 
-Bundled configs live under `configs/` in this repository and inside the Python
-wheel under `dexi_rs.resources.configs`.
+Example configs live under `configs/` in this repository. They are normal YAML
+files, so copy/edit them in your own project and pass their filesystem path to
+`dexi_rs.load_config(...)`.
 
 | Family | Configs |
 | --- | --- |
@@ -96,11 +97,11 @@ wheel under `dexi_rs.resources.configs`.
 | Inspire | left/right, vector, position, DexPilot |
 | Panda gripper | vector, position, DexPilot |
 
-List available package configs:
+List configs in a checkout:
 
 ```python
 import dexi_rs
-print(dexi_rs.available_configs())
+print(dexi_rs.available_configs("configs"))
 ```
 
 ## Examples you can run with uv ⚡

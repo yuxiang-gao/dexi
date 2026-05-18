@@ -1,7 +1,7 @@
 """Python interface for the dexi hand-retargeting engine.
 
-The Python package wraps the Rust implementation and ships the standard robot
-URDF/config resources used by the examples.
+The package wraps the Rust implementation and ships robot assets. YAML configs
+are ordinary files: pass their filesystem paths directly to :func:`load_config`.
 """
 
 from __future__ import annotations
@@ -36,41 +36,33 @@ def _resource_file(package: str, path: str | Path) -> Path:
     return file_path
 
 
-def available_configs(kind: str | None = None) -> list[str]:
-    """Return packaged config paths such as ``offline/allegro_hand_left.yml``.
+def available_configs(root: str | Path = "configs", kind: str | None = None) -> list[str]:
+    """Return YAML configs found under a filesystem directory.
 
-    Parameters
-    ----------
-    kind:
-        Optional config group. Use ``"offline"`` for position retargeting or
-        ``"teleop"`` for vector/DexPilot retargeting.
+    ``dexi-rs`` no longer bundles configs in the wheel. This helper is a small
+    convenience for source checkouts or projects that keep configs in a local
+    ``configs/`` directory.
     """
 
-    base = il_resources.files("dexi_rs.resources.configs")
-    kinds = [kind] if kind else [entry.name for entry in base.iterdir() if entry.is_dir()]
+    base = Path(root).expanduser()
+    if kind:
+        base = base / kind
+    if not base.exists():
+        return []
 
-    configs: list[str] = []
-    for group in sorted(kinds):
-        group_dir = base.joinpath(group)
-        if not group_dir.is_dir():
-            raise ValueError(f"unknown config group: {group}")
-        for entry in group_dir.iterdir():
-            if entry.name.endswith((".yml", ".yaml")):
-                configs.append(f"{group}/{entry.name}")
-    return sorted(configs)
+    configs = [path for path in sorted(base.rglob("*")) if path.suffix in {".yml", ".yaml"}]
+    if kind:
+        return [str(Path(kind) / path.relative_to(base)) for path in configs]
+    return [str(path.relative_to(base)) for path in configs]
 
 
 def config_path(name: str | Path) -> Path:
-    """Return a filesystem path to a packaged YAML config.
+    """Return an existing filesystem path to a YAML config."""
 
-    The returned path stays valid for the life of the Python process, including
-    zip-import contexts, because extracted resources are held open internally.
-    """
-
-    parts = _split_resource_path(name)
-    if parts[0] == "configs":
-        parts = parts[1:]
-    return _resource_file("dexi_rs.resources.configs", Path(*parts))
+    path = Path(name).expanduser()
+    if not path.exists():
+        raise FileNotFoundError(path)
+    return path
 
 
 def asset_path(name: str | Path = "robots/hands") -> Path:
@@ -83,11 +75,11 @@ def asset_path(name: str | Path = "robots/hands") -> Path:
 
 
 def load_config(name: str | Path) -> RetargetingConfig:
-    """Load a packaged config by name.
+    """Load a YAML config file directly from the filesystem.
 
     Example
     -------
-    >>> cfg = load_config("teleop/allegro_hand_right.yml")
+    >>> cfg = load_config("configs/teleop/allegro_hand_right.yml")
     >>> retargeting = cfg.build()
     """
 

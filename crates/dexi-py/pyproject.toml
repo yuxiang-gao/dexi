@@ -33,6 +33,6 @@ include = [
   { path = "THIRD_PARTY_NOTICES.md", format = "wheel" },
   { path = "LICENSE", format = "sdist" },
   { path = "THIRD_PARTY_NOTICES.md", format = "sdist" },
-  { path = "python/dexi_rs/resources/**/*", format = "wheel" },
-  { path = "python/dexi_rs/resources/**/*", format = "sdist" },
+  { path = "python/dexi_rs/resources/assets/**/*", format = "wheel" },
+  { path = "python/dexi_rs/resources/assets/**/*", format = "sdist" },
 ]

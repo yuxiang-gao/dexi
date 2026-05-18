@@ -12,7 +12,7 @@ import dexi_rs
 
 
 def target_for(config_name: str) -> list[float]:
-    if config_name.startswith("offline/"):
+    if "/offline/" in config_name or config_name.startswith("offline/"):
         # Allegro position configs use eight 3D targets: four tips plus four
         # intermediate links.
         return np.array(
@@ -39,9 +39,9 @@ def target_for(config_name: str) -> list[float]:
 
 def main() -> None:
     configs = [
-        "offline/allegro_hand_right.yml",
-        "teleop/allegro_hand_right.yml",
-        "teleop/allegro_hand_right_dexpilot.yml",
+        "configs/offline/allegro_hand_right.yml",
+        "configs/teleop/allegro_hand_right.yml",
+        "configs/teleop/allegro_hand_right_dexpilot.yml",
     ]
     for name in configs:
         retargeting = dexi_rs.load_config(name).build()

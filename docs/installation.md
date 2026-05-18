@@ -8,11 +8,14 @@ Install the published Python package:
 uv pip install dexi-rs
 ```
 
-Import name and distribution name differ intentionally:
+Import with the matching module name:
 
 ```python
 import dexi_rs  # distribution: dexi-rs
 ```
+
+Robot assets ship with the package. YAML configs are regular files; in a source
+checkout, examples use paths such as `configs/teleop/allegro_hand_right.yml`.
 
 ## Local development
 

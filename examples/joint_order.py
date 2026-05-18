@@ -13,7 +13,7 @@ import dexi_rs
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", nargs="?", default="teleop/allegro_hand_right.yml")
+    parser.add_argument("config", nargs="?", default="configs/teleop/allegro_hand_right.yml")
     args = parser.parse_args()
 
     retargeting = dexi_rs.load_config(args.config).build()

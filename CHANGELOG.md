@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- Breaking: stop bundling YAML configs inside the wheel.
+- Make `dexi_rs.load_config(path)` load direct filesystem config paths.
+- Update examples to pass explicit `configs/...` paths while keeping robot assets bundled.
+
 ## 0.2.0
 
 - Breaking: rename the Python import package from `dexi_py` to `dexi_rs`.
@@ -15,6 +21,6 @@
 ## 0.1.1
 
 - Add Rust retargeting core for position, vector, and DexPilot objectives.
-- Add Python distribution `dexi-rs` with bundled configs and URDF resources.
+- Add Python distribution `dexi-rs` with config helpers and URDF resources.
 - Add uv-runnable examples and a viser 3D point-cloud viewer.
 - Add release checks, package build recipes, and Python-vs-Rust parity reports.
