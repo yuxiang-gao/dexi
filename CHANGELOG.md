@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Update Fourier vector configs to retarget all five fingertips.
+- Add Fourier/Allegro visualizer presets and per-robot transform conventions.
+- Keep Allegro's four-tip mapping while making Fourier's five-tip convention the default.
+
 ## 0.3.1
 
 - Add Fourier 6DOF and 12DOF hand URDF assets and example configs.

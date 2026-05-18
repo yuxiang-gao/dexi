@@ -32,12 +32,30 @@ from viser.extras import ViserUrdf
 import dexi_rs
 
 
-DEFAULT_CONFIG = "configs/teleop/fourier_hand_right_6dof.yml"
+CONFIG_PRESETS = {
+    "fourier": {
+        "left": {
+            "6dof": "configs/teleop/fourier_hand_left_6dof.yml",
+            "12dof": "configs/teleop/fourier_hand_left_12dof.yml",
+        },
+        "right": {
+            "6dof": "configs/teleop/fourier_hand_right_6dof.yml",
+            "12dof": "configs/teleop/fourier_hand_right_12dof.yml",
+        },
+    },
+    "allegro": {
+        "left": {"default": "configs/teleop/allegro_hand_left.yml"},
+        "right": {"default": "configs/teleop/allegro_hand_right.yml"},
+    },
+}
 REPO_ROOT = Path(__file__).resolve().parents[1]
-TARGET_VECTORS = np.array(
-    [[0.03, -0.02, 0.08], [0.04, 0.0, 0.09], [0.03, 0.02, 0.085], [0.02, 0.04, 0.07]],
-    dtype=np.float64,
-)
+TARGET_VECTOR_BY_LANDMARK = {
+    4: np.array([0.03, -0.02, 0.08], dtype=np.float64),
+    8: np.array([0.04, 0.0, 0.09], dtype=np.float64),
+    12: np.array([0.03, 0.02, 0.085], dtype=np.float64),
+    16: np.array([0.02, 0.04, 0.07], dtype=np.float64),
+    20: np.array([0.01, 0.055, 0.055], dtype=np.float64),
+}
 MARKER_RADIUS = 0.006
 
 
@@ -86,14 +104,16 @@ def build_retargeted_scene(config_name: str) -> RetargetedScene:
     raw = load_vector_yaml(config_name)
     wrist_link = str(raw["target_origin_link_names"][0])
     fingertip_links = list(raw["target_task_link_names"])
+    target_indices = [int(index) for index in raw["target_link_human_indices"][1]]
+    target_vectors = np.asarray([TARGET_VECTOR_BY_LANDMARK[index] for index in target_indices], dtype=np.float64)
     links = [wrist_link, *fingertip_links]
     config = dexi_rs.load_config(config_name)
     retargeting = config.build()
-    qpos = np.asarray(retargeting.retarget(TARGET_VECTORS.reshape(-1).tolist()), dtype=np.float64)
+    qpos = np.asarray(retargeting.retarget(target_vectors.reshape(-1).tolist()), dtype=np.float64)
 
     actual_points = np.asarray(retargeting.link_positions(qpos.tolist(), links), dtype=np.float32)
     wrist_point = actual_points[0]
-    target_points = (wrist_point + TARGET_VECTORS.astype(np.float32) * float(raw.get("scaling_factor", 1.0))).astype(
+    target_points = (wrist_point + target_vectors.astype(np.float32) * float(raw.get("scaling_factor", 1.0))).astype(
         np.float32
     )
 
@@ -238,14 +258,18 @@ def add_overlays(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default=DEFAULT_CONFIG, help="Vector config file to visualize")
+    parser.add_argument("--config", help="Vector config file to visualize. Defaults to the selected --robot/--hand preset.")
+    parser.add_argument("--robot", choices=["fourier", "allegro"], default="fourier")
+    parser.add_argument("--hand", choices=["left", "right"], default="right")
+    parser.add_argument("--dof", choices=["6dof", "12dof"], default="6dof", help="Fourier preset DOF variant")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--no-meshes", action="store_true", help="Load URDF frames only, without visual meshes")
     parser.add_argument("--smoke-test", action="store_true")
     args = parser.parse_args()
 
-    scene = build_retargeted_scene(args.config)
+    config_name = args.config or (CONFIG_PRESETS[args.robot][args.hand].get(args.dof) or CONFIG_PRESETS[args.robot][args.hand]["default"])
+    scene = build_retargeted_scene(config_name)
     urdf_path = scene.urdf_path
     qpos = scene.qpos
     retargeting = scene.retargeting
@@ -299,6 +323,7 @@ def main() -> None:
         return
 
     print(f"Open http://{args.host}:{args.port}")
+    print(f"Config: {config_name}")
     print(f"URDF: {urdf_path}")
     print(f"Mesh rendering: {'on' if load_meshes else 'off (--no-meshes)'}; visual meshes: {mesh_count}")
     try:

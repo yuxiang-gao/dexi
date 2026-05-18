@@ -46,6 +46,8 @@ uv run examples/visualize_viser.py
 The example loads the Fourier 6DOF URDF mesh model by default, applies the retargeted joint
 configuration, and overlays the wrist axis, fingertip targets, actual fingertip
 positions, and residual lines. It does not write videos or SVG artifacts.
+Use `--robot allegro` to switch back to the Allegro hand, or `--dof 12dof` to
+load the Fourier 12DOF preset.
 
 ## Human hand video or webcam retargeting
 
@@ -75,3 +77,7 @@ uv run examples/vector_retarget_viser.py --webcam 0
 
 The example avoids rendered videos and SVG output. The visualization is live in
 viser, so you can orbit the robot hand while the tracking targets update.
+Fourier is the default convention (`+x` to thumb, `-y` out of palm, `+z` toward
+wrist) and tracks all five fingertips. Allegro can be selected with
+`--robot allegro --transform-convention allegro` and uses the four-tip mapping
+from its teleop configs.

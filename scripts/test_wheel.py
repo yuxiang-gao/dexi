@@ -42,7 +42,7 @@ qpos = retargeting.retarget([0.03,-0.02,0.08,0.04,0.0,0.09,0.03,0.02,0.085,0.02,
 assert len(qpos) == len(retargeting.joint_names)
 fourier = dexi_rs.load_config(root / 'configs/teleop/fourier_hand_right_6dof.yml').build()
 assert fourier.joint_names
-fourier_qpos = fourier.retarget([0.03,-0.02,0.08,0.04,0.0,0.09,0.03,0.02,0.085,0.02,0.04,0.07])
+fourier_qpos = fourier.retarget([0.03,-0.02,0.08,0.04,0.0,0.09,0.03,0.02,0.085,0.02,0.04,0.07,0.01,0.055,0.055])
 assert len(fourier_qpos) == len(fourier.joint_names)
 print('wheel smoke test passed')
 """

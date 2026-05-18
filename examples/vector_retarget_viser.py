@@ -44,9 +44,21 @@ from viser.extras import ViserUrdf
 import dexi_rs
 
 
-DEFAULT_CONFIG_BY_HAND = {
-    "left": "configs/teleop/fourier_hand_left_6dof.yml",
-    "right": "configs/teleop/fourier_hand_right_6dof.yml",
+CONFIG_PRESETS = {
+    "fourier": {
+        "left": {
+            "6dof": "configs/teleop/fourier_hand_left_6dof.yml",
+            "12dof": "configs/teleop/fourier_hand_left_12dof.yml",
+        },
+        "right": {
+            "6dof": "configs/teleop/fourier_hand_right_6dof.yml",
+            "12dof": "configs/teleop/fourier_hand_right_12dof.yml",
+        },
+    },
+    "allegro": {
+        "left": {"default": "configs/teleop/allegro_hand_left.yml"},
+        "right": {"default": "configs/teleop/allegro_hand_right.yml"},
+    },
 }
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WRIST_LINK = "wrist"
@@ -55,12 +67,33 @@ FINGERTIP_LANDMARKS = {
     "index": 8,
     "middle": 12,
     "ring": 16,
+    "pinky": 20,
 }
-# The robot config controls link order. These names control which MediaPipe tip
-# drives each robot link.
-DEFAULT_TIP_ORDER_BY_HAND = {
-    "left": ["thumb", "index", "middle", "ring"],
-    "right": ["thumb", "index", "middle", "ring"],
+DEFAULT_TIP_ORDER_BY_ROBOT = {
+    "fourier": ["thumb", "index", "middle", "ring", "pinky"],
+    "allegro": ["thumb", "index", "middle", "ring"],
+}
+CONVENTION_TRANSFORMS = {
+    # Human frame estimated below: +z out of palm, -y to thumb, +x to fingertips.
+    # Fourier hand URDF frame: +x to thumb, -y out of palm, +z to wrist.
+    "fourier": np.array(
+        [
+            [0.0, 0.0, -1.0],  # x_fourier = -y_human, y_fourier = -z_human, z_fourier = -x_human
+            [-1.0, 0.0, 0.0],
+            [0.0, -1.0, 0.0],
+        ],
+        dtype=np.float64,
+    ),
+    # Allegro demo frame used by the original visualizer: +x out of palm,
+    # -y to thumb, +z to fingertips.
+    "allegro": np.array(
+        [
+            [0.0, 0.0, 1.0],
+            [0.0, 1.0, 0.0],
+            [1.0, 0.0, 0.0],
+        ],
+        dtype=np.float64,
+    ),
 }
 PALM_LANDMARKS = [0, 5, 9, 13, 17]
 HAND_CONNECTIONS = [
@@ -115,6 +148,7 @@ class VectorConfig:
     task_indices: np.ndarray
     scaling: float
     tip_order: list[str]
+    convention: str
 
     @property
     def unique_links(self) -> list[str]:
@@ -147,9 +181,23 @@ def hand_from_config_name(config_name: str) -> str:
     return "right"
 
 
-def parse_tip_order(value: str | None, hand: str) -> list[str]:
+def robot_from_config_name(config_name: str) -> str:
+    lowered = config_name.lower()
+    if "fourier" in lowered:
+        return "fourier"
+    if "allegro" in lowered:
+        return "allegro"
+    return "fourier"
+
+
+def preset_config(robot: str, hand: str, dof: str) -> str:
+    options = CONFIG_PRESETS[robot][hand]
+    return options.get(dof) or options["default"]
+
+
+def parse_tip_order(value: str | None, robot: str) -> list[str]:
     if value is None:
-        return DEFAULT_TIP_ORDER_BY_HAND[hand]
+        return DEFAULT_TIP_ORDER_BY_ROBOT[robot]
     names = [item.strip().lower() for item in value.split(",") if item.strip()]
     unknown = [name for name in names if name not in FINGERTIP_LANDMARKS]
     if unknown:
@@ -158,7 +206,10 @@ def parse_tip_order(value: str | None, hand: str) -> list[str]:
 
 
 def load_vector_config(
-    config_name: str, tip_order: list[str] | None = None, scale: float | None = None
+    config_name: str,
+    tip_order: list[str] | None = None,
+    scale: float | None = None,
+    convention: str | None = None,
 ) -> VectorConfig:
     raw = yaml.safe_load(Path(config_name).read_text(encoding="utf-8"))[
         "retargeting"
@@ -173,7 +224,7 @@ def load_vector_config(
             "vector config must provide two target_link_human_indices rows"
         )
     if tip_order is None:
-        tip_order = parse_tip_order(None, hand_from_config_name(config_name))
+        tip_order = parse_tip_order(None, robot_from_config_name(config_name))
     if len(tip_order) != len(raw["target_task_link_names"]):
         raise ValueError(
             f"tip order {tip_order} has {len(tip_order)} entries but config has "
@@ -193,6 +244,7 @@ def load_vector_config(
         ),
         scaling=float(raw.get("scaling_factor", 1.0) if scale is None else scale),
         tip_order=tip_order,
+        convention=convention or robot_from_config_name(config_name),
     )
 
 
@@ -254,9 +306,7 @@ def estimate_human_wrist_frame(points: np.ndarray) -> np.ndarray:
     return np.stack([x_axis, y_axis, z_axis], axis=1)
 
 
-def camera_landmarks_to_robot_frame(
-    points: np.ndarray, hand: str
-) -> tuple[np.ndarray, np.ndarray]:
+def camera_landmarks_to_robot_frame(points: np.ndarray, convention: str) -> tuple[np.ndarray, np.ndarray]:
     """Map MediaPipe world landmarks into dexi's robot-hand vector frame.
 
     The retargeting configs expect hand vectors in a wrist-local convention, not
@@ -267,19 +317,8 @@ def camera_landmarks_to_robot_frame(
     """
 
     centered = points - points[0:1]
-    _ = hand
     human_frame = estimate_human_wrist_frame(centered)
-    # Human frame: +z palm-out, -y thumb, +x toward fingertips.
-    # Robot demo convention: +x palm-out, -y thumb, +z toward fingertips.
-    # Therefore x_r=z_h, y_r=y_h, and z_r=x_h.
-    human_to_robot_axes = np.array(
-        [
-            [0.0, 0.0, 1.0],
-            [0.0, 1.0, 0.0],
-            [1.0, 0.0, 0.0],
-        ],
-        dtype=np.float64,
-    )
+    human_to_robot_axes = CONVENTION_TRANSFORMS[convention]
     robot_frame = human_frame @ human_to_robot_axes
     return (centered @ robot_frame).astype(np.float64), robot_frame
 
@@ -405,12 +444,13 @@ def video_panel_image(image: np.ndarray, normalized_xy: np.ndarray | None) -> np
 
 
 class HandTracker:
-    def __init__(self, hand: str, selfie: bool) -> None:
+    def __init__(self, hand: str, selfie: bool, convention: str) -> None:
         import mediapipe as mp
 
         self._mp = mp
         self._hand = hand.lower()
         self._selfie = selfie
+        self._convention = convention
         self._timestamp_ms = 0
 
         # MediaPipe 0.10.x on newer Python versions exposes only the Tasks API;
@@ -480,7 +520,7 @@ class HandTracker:
         world_points = np.asarray([[p.x, p.y, p.z] for p in world], dtype=np.float64)
         image_points = np.asarray([[p.x, p.y] for p in image], dtype=np.float64)
         landmarks, wrist_frame = camera_landmarks_to_robot_frame(
-            world_points, self._hand
+            world_points, self._convention
         )
         return landmarks, image_points, wrist_frame
 
@@ -510,7 +550,7 @@ class HandTracker:
             [[p.x, p.y] for p in image_points_raw], dtype=np.float64
         )
         landmarks, wrist_frame = camera_landmarks_to_robot_frame(
-            world_points, self._hand
+            world_points, self._convention
         )
         return landmarks, image_points, wrist_frame
 
@@ -802,8 +842,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--config",
-        help="Vector config file to retarget. Defaults to the local Fourier 6DOF config matching --hand.",
+        help="Vector config file to retarget. Defaults to the selected --robot/--hand preset.",
     )
+    parser.add_argument("--robot", choices=["fourier", "allegro"], default="fourier")
+    parser.add_argument("--dof", choices=["6dof", "12dof"], default="6dof", help="Fourier preset DOF variant")
     parser.add_argument(
         "--video", help="Video file to read. If omitted, the webcam is used."
     )
@@ -824,6 +866,11 @@ def main() -> None:
         help="Override vector scaling_factor from the YAML config",
     )
     parser.add_argument(
+        "--transform-convention",
+        choices=sorted(CONVENTION_TRANSFORMS),
+        help="Coordinate convention for detected landmarks. Defaults to --robot or the config family.",
+    )
+    parser.add_argument(
         "--selfie", action="store_true", help="Use mirrored webcam handedness labels"
     )
     parser.add_argument("--host", default="127.0.0.1")
@@ -838,10 +885,14 @@ def main() -> None:
     parser.add_argument("--smoke-test", action="store_true")
     args = parser.parse_args()
 
-    config_name = args.config or DEFAULT_CONFIG_BY_HAND[args.hand]
-    tip_order = parse_tip_order(args.tip_order, hand_from_config_name(config_name))
-    vector_cfg = load_vector_config(config_name, tip_order=tip_order, scale=args.scale)
-    tracker = None if args.smoke_test else HandTracker(args.hand, args.selfie)
+    config_name = args.config or preset_config(args.robot, args.hand, args.dof)
+    robot_name = robot_from_config_name(config_name) if args.config else args.robot
+    convention = args.transform_convention or robot_name
+    tip_order = parse_tip_order(args.tip_order, robot_name)
+    vector_cfg = load_vector_config(
+        config_name, tip_order=tip_order, scale=args.scale, convention=convention
+    )
+    tracker = None if args.smoke_test else HandTracker(args.hand, args.selfie, vector_cfg.convention)
     scene = ViserRetargetingScene(args, vector_cfg)
     capture: cv2.VideoCapture | None = None
     processed = 0
@@ -922,6 +973,7 @@ def main() -> None:
     print(f"Open http://{args.host}:{args.port}")
     print(f"Config: {config_name}")
     print(f"URDF: {vector_cfg.urdf_path}")
+    print(f"Robot preset: {robot_name}; transform convention: {vector_cfg.convention}")
     print(
         f"Tip mapping: robot links {vector_cfg.task_links} <- MediaPipe tips {vector_cfg.tip_order}"
     )

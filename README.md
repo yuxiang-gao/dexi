@@ -124,6 +124,13 @@ viewer, loads the Fourier 6DOF URDF hand model by default, applies the retargete
 configuration, and overlays the wrist axis plus fingertip targets. It does not
 render videos or SVG files.
 
+Visualizer presets include both Fourier and Allegro hands:
+
+```bash
+uv run examples/visualize_viser.py --robot fourier --dof 12dof
+uv run examples/visualize_viser.py --robot allegro
+```
+
 For video/webcam retargeting, `vector_retarget_viser.py` tracks a human hand,
 updates the URDF robot hand, and shows the camera frame, tracked landmarks,
 fingertip targets, actual fingertips, and residuals in the same viser scene:
@@ -131,6 +138,15 @@ fingertip targets, actual fingertips, and residuals in the same viser scene:
 ```bash
 uv run examples/vector_retarget_viser.py --video path/to/hand_video.mp4
 uv run examples/vector_retarget_viser.py --webcam 0
+```
+
+Fourier is the default live-demo convention (`+x` to thumb, `-y` out of palm,
+`+z` toward wrist) and uses all five fingertips. Allegro remains available with
+its own transform and four-tip mapping:
+
+```bash
+uv run examples/vector_retarget_viser.py --robot allegro --transform-convention allegro
+uv run examples/vector_retarget_viser.py --robot fourier --dof 12dof --tip-order thumb,index,middle,ring,pinky
 ```
 
 ```bash
