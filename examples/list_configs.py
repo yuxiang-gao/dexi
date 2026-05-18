@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["dexi-rs"]
+# dependencies = ["dexi-rs>=0.3.0"]
 # ///
 """List local dexi config files from a source checkout."""
 

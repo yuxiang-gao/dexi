@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 # /// script
 # requires-python = ">=3.10,<3.13"
-# dependencies = ["dexi-rs", "mediapipe", "numpy", "opencv-python", "pyyaml", "viser", "yourdfpy"]
+# dependencies = ["dexi-rs>=0.3.0", "mediapipe", "numpy", "opencv-python", "pyyaml", "viser", "yourdfpy"]
 # ///
 """Retarget a human hand video/webcam stream to a robot hand in viser.
 
