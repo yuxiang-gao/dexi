@@ -7,6 +7,7 @@
 - Validate config required fields and dimensions on every load path.
 - Resolve relative URDF paths against bundled assets, then the working directory.
 - Ship type stubs (`_native.pyi`, `py.typed`) for IDE and type-checker support.
+- Rename `load_config`'s parameter from `name` to `source`; keyword callers of `name=` must update.
 
 ## 0.3.2
 

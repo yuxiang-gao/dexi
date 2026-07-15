@@ -282,7 +282,8 @@ impl RetargetingConfig {
     ///
     /// Relative paths are first resolved relative to the config file's
     /// directory. If that fails, each ancestor directory is checked for the
-    /// project/package layout `assets/robots/hands/<urdf_path>`.
+    /// project/package layout `assets/robots/hands/<urdf_path>`. Finally,
+    /// the current working directory is tried as a last resort.
     pub fn resolve_urdf_path(&self) -> Result<PathBuf, String> {
         let path = Path::new(&self.urdf_path);
         if path.is_absolute() {
