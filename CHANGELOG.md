@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Return `RuntimeError` instead of crashing (`PanicException`) when `build()` meets unknown link or joint names.
+- Validate that dexpilot configs declare 2-5 fingertip links.
+
 ## 0.4.0
 
 - Define `RetargetingConfig` directly from Python keyword arguments or dicts.

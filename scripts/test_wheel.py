@@ -99,6 +99,22 @@ try:
     raise AssertionError('expected TypeError')
 except TypeError:
     pass
+try:
+    dexi_rs.RetargetingConfig(type='vector', urdf_path='allegro_hand/allegro_hand_right.urdf',
+        target_origin_link_names=['wrist', 'wrist'],
+        target_task_link_names=['link_15.0_tip', 'typo_link'],
+        target_link_human_indices=[[0, 0], [4, 8]]).build()
+    raise AssertionError('expected RuntimeError for unknown link name')
+except RuntimeError as exc:
+    assert 'typo_link' in str(exc), exc
+cfg_obj = dexi_rs.RetargetingConfig(**kwargs)
+assert dexi_rs.load_config(cfg_obj) is cfg_obj, 'config objects must pass through load_config'
+override = dexi_rs.RetargetingConfig(**kwargs, urdf_dir=str(root / 'assets/robots/hands'))
+assert override.build().joint_names, 'urdf_dir override must resolve the URDF'
+defaults = dexi_rs.RetargetingConfig(**kwargs)
+assert defaults.normal_delta == 4e-3 and defaults.huber_delta == 2e-2
+assert defaults.project_dist == 0.03 and defaults.escape_dist == 0.05
+assert defaults.has_joint_limits is True and defaults.ignore_mimic_joint is False
 print('wheel smoke test passed')
 """
         subprocess.run([str(python), "-c", code], cwd=ROOT, check=True)

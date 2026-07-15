@@ -126,7 +126,7 @@ fn dexpilot_valid_config_passes() {
 #[test]
 fn dexpilot_missing_wrist_fails() {
     let config = RetargetingConfig {
-        finger_tip_link_names: Some(vec!["link_15.0_tip".into()]),
+        finger_tip_link_names: Some(vec!["link_15.0_tip".into(), "link_3.0_tip".into()]),
         wrist_link_name: None,
         ..base(RetargetingType::DexPilot)
     };
@@ -153,4 +153,146 @@ retargeting:
         err.contains("target_origin_link_names"),
         "unexpected message: {err}"
     );
+}
+
+fn build_err(config: RetargetingConfig) -> String {
+    match config.build() {
+        Ok(_) => panic!("expected build to fail"),
+        Err(err) => err,
+    }
+}
+
+fn allegro_urdf_path() -> String {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("assets/robots/hands/allegro_hand/allegro_hand_right.urdf")
+        .display()
+        .to_string()
+}
+
+fn valid_dexpilot() -> RetargetingConfig {
+    RetargetingConfig {
+        finger_tip_link_names: Some(vec![
+            "link_15.0_tip".into(),
+            "link_3.0_tip".into(),
+            "link_7.0_tip".into(),
+            "link_11.0_tip".into(),
+        ]),
+        wrist_link_name: Some("wrist".into()),
+        ..base(RetargetingType::DexPilot)
+    }
+}
+
+#[test]
+fn dexpilot_single_fingertip_fails_validation() {
+    let config = RetargetingConfig {
+        finger_tip_link_names: Some(vec!["link_15.0_tip".into()]),
+        ..valid_dexpilot()
+    };
+    let err = config.validate().unwrap_err();
+    assert!(
+        err.contains("finger_tip_link_names") && err.contains('2') && err.contains('5'),
+        "unexpected message: {err}"
+    );
+}
+
+#[test]
+fn dexpilot_six_fingertips_fails_validation() {
+    let config = RetargetingConfig {
+        finger_tip_link_names: Some(vec![
+            "a".into(),
+            "b".into(),
+            "c".into(),
+            "d".into(),
+            "e".into(),
+            "f".into(),
+        ]),
+        ..valid_dexpilot()
+    };
+    let err = config.validate().unwrap_err();
+    assert!(
+        err.contains("finger_tip_link_names"),
+        "unexpected message: {err}"
+    );
+}
+
+#[test]
+fn dexpilot_two_and_five_fingertips_pass_validation() {
+    for count in [2usize, 5] {
+        let config = RetargetingConfig {
+            finger_tip_link_names: Some((0..count).map(|i| format!("tip_{i}")).collect()),
+            ..valid_dexpilot()
+        };
+        config
+            .validate()
+            .unwrap_or_else(|e| panic!("{count} fingertips must pass validation: {e}"));
+    }
+}
+
+#[test]
+fn build_with_unknown_vector_link_errs_instead_of_panicking() {
+    let config = RetargetingConfig {
+        urdf_path: allegro_urdf_path(),
+        target_task_link_names: Some(vec!["link_15.0_tip".into(), "typo_link".into()]),
+        target_origin_link_names: Some(vec!["wrist".into(), "wrist".into()]),
+        target_link_human_indices: Some(vec![0, 0, 4, 8]),
+        ..base(RetargetingType::Vector)
+    };
+    let err = build_err(config);
+    assert!(err.contains("typo_link"), "unexpected message: {err}");
+}
+
+#[test]
+fn build_with_unknown_position_link_errs_instead_of_panicking() {
+    let config = RetargetingConfig {
+        urdf_path: allegro_urdf_path(),
+        target_link_names: Some(vec!["typo_link".into()]),
+        target_link_human_indices: Some(vec![4]),
+        ..base(RetargetingType::Position)
+    };
+    let err = build_err(config);
+    assert!(err.contains("typo_link"), "unexpected message: {err}");
+}
+
+#[test]
+fn build_with_unknown_dexpilot_wrist_errs_instead_of_panicking() {
+    let config = RetargetingConfig {
+        urdf_path: allegro_urdf_path(),
+        wrist_link_name: Some("typo_wrist".into()),
+        ..valid_dexpilot()
+    };
+    let err = build_err(config);
+    assert!(err.contains("typo_wrist"), "unexpected message: {err}");
+}
+
+#[test]
+fn build_with_unknown_joint_name_errs_instead_of_panicking() {
+    let config = RetargetingConfig {
+        urdf_path: allegro_urdf_path(),
+        target_joint_names: Some(vec!["typo_joint".into()]),
+        ..valid_vector_with_urdf()
+    };
+    let err = build_err(config);
+    assert!(err.contains("typo_joint"), "unexpected message: {err}");
+}
+
+fn valid_vector_with_urdf() -> RetargetingConfig {
+    RetargetingConfig {
+        urdf_path: allegro_urdf_path(),
+        target_origin_link_names: Some(vec!["wrist".into(), "wrist".into()]),
+        target_task_link_names: Some(vec!["link_15.0_tip".into(), "link_3.0_tip".into()]),
+        target_link_human_indices: Some(vec![0, 0, 4, 8]),
+        ..base(RetargetingType::Vector)
+    }
+}
+
+#[test]
+fn build_with_valid_links_still_succeeds() {
+    let retargeting = valid_vector_with_urdf()
+        .build()
+        .expect("valid vector config must build");
+    assert!(!retargeting.optimizer.dof_joint_names().is_empty());
 }

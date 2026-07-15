@@ -142,10 +142,17 @@ impl RetargetingConfig {
                 }
             }
             RetargetingType::DexPilot => {
-                self.finger_tip_link_names
+                let finger_tips = self
+                    .finger_tip_link_names
                     .as_ref()
                     .filter(|v| !v.is_empty())
                     .ok_or("dexpilot retargeting requires non-empty finger_tip_link_names")?;
+                if !(2..=5).contains(&finger_tips.len()) {
+                    return Err(format!(
+                        "dexpilot retargeting: finger_tip_link_names must have 2 to 5 entries, got {}",
+                        finger_tips.len()
+                    ));
+                }
                 self.wrist_link_name
                     .as_ref()
                     .filter(|s| !s.is_empty())
@@ -363,6 +370,52 @@ impl RetargetingConfig {
         } else {
             robot.dof_joint_names()
         };
+
+        // Optimizer construction panics on unknown link/joint names; reject
+        // typos here so callers get an Err instead of a crash.
+        let mut required_links: Vec<&str> = Vec::new();
+        match self.type_ {
+            RetargetingType::Position => {
+                if let Some(names) = &self.target_link_names {
+                    required_links.extend(names.iter().map(String::as_str));
+                }
+            }
+            RetargetingType::Vector => {
+                for names in [&self.target_origin_link_names, &self.target_task_link_names]
+                    .into_iter()
+                    .flatten()
+                {
+                    required_links.extend(names.iter().map(String::as_str));
+                }
+            }
+            RetargetingType::DexPilot => {
+                if let Some(names) = &self.finger_tip_link_names {
+                    required_links.extend(names.iter().map(String::as_str));
+                }
+                if let Some(name) = &self.wrist_link_name {
+                    required_links.push(name);
+                }
+            }
+        }
+        for name in required_links {
+            if robot.get_link_index(name).is_none() {
+                return Err(format!(
+                    "link {} not found in URDF {}",
+                    name,
+                    urdf_path.display()
+                ));
+            }
+        }
+        let dof_joint_names = robot.dof_joint_names();
+        for name in &joint_names {
+            if !dof_joint_names.contains(name) {
+                return Err(format!(
+                    "joint {} not found in URDF {}",
+                    name,
+                    urdf_path.display()
+                ));
+            }
+        }
 
         // Parse mimic joints from the URDF
         let (has_mimic, source_names, mimic_names, multipliers, offsets) =
