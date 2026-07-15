@@ -74,16 +74,29 @@ def asset_path(name: str | Path = "robots/hands") -> Path:
     return _resource_file("dexi_rs.resources.assets", Path(*parts))
 
 
-def load_config(name: str | Path) -> RetargetingConfig:
-    """Load a YAML config file directly from the filesystem.
+def load_config(source: str | Path | dict | RetargetingConfig) -> RetargetingConfig:
+    """Return a :class:`RetargetingConfig` from any supported source.
+
+    Accepts a YAML file path (``str`` / ``Path``), an already-built
+    :class:`RetargetingConfig` (returned as-is), or a ``dict`` of constructor
+    keyword arguments — optionally nested under a ``"retargeting"`` key so a
+    YAML file parsed into a dict round-trips.
 
     Example
     -------
     >>> cfg = load_config("configs/teleop/allegro_hand_right.yml")
+    >>> cfg = load_config({"type": "vector", "urdf_path": "...", ...})
     >>> retargeting = cfg.build()
     """
 
-    return RetargetingConfig.from_file(str(config_path(name)))
+    if isinstance(source, RetargetingConfig):
+        return source
+    if isinstance(source, dict):
+        fields = source.get("retargeting", source)
+        if not isinstance(fields, dict):
+            raise ValueError("'retargeting' key must map to a dict of config fields")
+        return RetargetingConfig(**fields)
+    return RetargetingConfig.from_file(str(config_path(source)))
 
 
 __all__ = [
