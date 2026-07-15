@@ -82,6 +82,79 @@ impl RetargetingConfig {
         Self::from_value(cfg, config_dir)
     }
 
+    /// Validate required fields and dimensions for the configured type.
+    ///
+    /// Runs on every entry path (YAML parsing, Python construction) and
+    /// again as a backstop at the start of `build()`.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.urdf_path.is_empty() {
+            return Err("retargeting config: urdf_path must not be empty".to_string());
+        }
+        match self.type_ {
+            RetargetingType::Position => {
+                let links = self
+                    .target_link_names
+                    .as_ref()
+                    .filter(|v| !v.is_empty())
+                    .ok_or("position retargeting requires non-empty target_link_names")?;
+                let indices = self
+                    .target_link_human_indices
+                    .as_ref()
+                    .filter(|v| !v.is_empty())
+                    .ok_or("position retargeting requires non-empty target_link_human_indices")?;
+                if indices.len() != links.len() {
+                    return Err(format!(
+                        "position retargeting: target_link_human_indices has {} entries but target_link_names has {}",
+                        indices.len(),
+                        links.len()
+                    ));
+                }
+            }
+            RetargetingType::Vector => {
+                let origin = self
+                    .target_origin_link_names
+                    .as_ref()
+                    .filter(|v| !v.is_empty())
+                    .ok_or("vector retargeting requires non-empty target_origin_link_names")?;
+                let task = self
+                    .target_task_link_names
+                    .as_ref()
+                    .filter(|v| !v.is_empty())
+                    .ok_or("vector retargeting requires non-empty target_task_link_names")?;
+                if origin.len() != task.len() {
+                    return Err(format!(
+                        "vector retargeting: target_origin_link_names has {} entries but target_task_link_names has {}",
+                        origin.len(),
+                        task.len()
+                    ));
+                }
+                let indices = self
+                    .target_link_human_indices
+                    .as_ref()
+                    .filter(|v| !v.is_empty())
+                    .ok_or("vector retargeting requires non-empty target_link_human_indices")?;
+                if indices.len() != 2 * origin.len() {
+                    return Err(format!(
+                        "vector retargeting: target_link_human_indices must flatten to 2 x {} entries, got {}",
+                        origin.len(),
+                        indices.len()
+                    ));
+                }
+            }
+            RetargetingType::DexPilot => {
+                self.finger_tip_link_names
+                    .as_ref()
+                    .filter(|v| !v.is_empty())
+                    .ok_or("dexpilot retargeting requires non-empty finger_tip_link_names")?;
+                self.wrist_link_name
+                    .as_ref()
+                    .filter(|s| !s.is_empty())
+                    .ok_or("dexpilot retargeting requires wrist_link_name")?;
+            }
+        }
+        Ok(())
+    }
+
     /// Parse from a serde_yaml::Value
     fn from_value(cfg: &serde_yaml::Value, config_dir: &Path) -> Result<Self, String> {
         let type_str = cfg
@@ -175,7 +248,7 @@ impl RetargetingConfig {
             .and_then(|v| v.as_f64())
             .unwrap_or(0.1);
 
-        Ok(Self {
+        let config = Self {
             type_,
             urdf_path,
             add_dummy_free_joint,
@@ -195,7 +268,9 @@ impl RetargetingConfig {
             ignore_mimic_joint,
             low_pass_alpha,
             default_urdf_dir: config_dir.to_path_buf(),
-        })
+        };
+        config.validate()?;
+        Ok(config)
     }
 
     /// Set the default URDF directory
@@ -249,6 +324,7 @@ impl RetargetingConfig {
     /// Build a SeqRetargeting from this config.
     /// The config is consumed since target_joint_names may be modified.
     pub fn build(mut self) -> Result<SeqRetargeting, String> {
+        self.validate()?;
         let urdf_path = self.resolve_urdf_path()?;
 
         // Load URDF
