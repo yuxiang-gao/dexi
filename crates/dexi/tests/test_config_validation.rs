@@ -296,3 +296,25 @@ fn build_with_valid_links_still_succeeds() {
         .expect("valid vector config must build");
     assert!(!retargeting.optimizer.dof_joint_names().is_empty());
 }
+
+#[test]
+fn build_with_unknown_dexpilot_fingertip_errs_instead_of_panicking() {
+    let config = RetargetingConfig {
+        urdf_path: allegro_urdf_path(),
+        finger_tip_link_names: Some(vec!["link_15.0_tip".into(), "typo_tip".into()]),
+        ..valid_dexpilot()
+    };
+    let err = build_err(config);
+    assert!(err.contains("typo_tip"), "unexpected message: {err}");
+}
+
+#[test]
+fn build_with_dummy_joints_and_unknown_joint_name_errs_instead_of_panicking() {
+    let config = RetargetingConfig {
+        add_dummy_free_joint: true,
+        target_joint_names: Some(vec!["typo_joint".into()]),
+        ..valid_vector_with_urdf()
+    };
+    let err = build_err(config);
+    assert!(err.contains("typo_joint"), "unexpected message: {err}");
+}
