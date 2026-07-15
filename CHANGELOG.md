@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
 - Define `RetargetingConfig` directly from Python keyword arguments or dicts.
 - Accept YAML paths, dicts, and config objects in `dexi_rs.load_config`.
@@ -8,6 +8,8 @@
 - Resolve relative URDF paths against bundled assets, then the working directory.
 - Ship type stubs (`_native.pyi`, `py.typed`) for IDE and type-checker support.
 - Rename `load_config`'s parameter from `name` to `source`; keyword callers of `name=` must update.
+- Publish wheels for CPython 3.10-3.14 on macOS (arm64, x86_64) and Linux (x86_64, aarch64).
+- Require Python >=3.10 (drop end-of-life 3.9).
 
 ## 0.3.2
 
