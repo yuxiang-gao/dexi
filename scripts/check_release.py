@@ -18,6 +18,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CARGO_PACKAGE = "dexi-rs"
 PYPI_PACKAGE = "dexi-rs"
+# Full release matrix: sdist + wheels for CPython 3.10-3.14 on
+# macOS (arm64, x86_64) and Linux (x86_64, aarch64).
+EXPECTED_PUBLISH_ARTIFACTS = 21
 
 
 def run(args: list[str]) -> str:
@@ -90,6 +93,15 @@ def _dist_members(path: Path) -> list[str]:
         with tarfile.open(path) as tf:
             return tf.getnames()
     return []
+
+
+def check_artifact_count() -> None:
+    artifacts = sorted((ROOT / "dist").glob("*"))
+    if len(artifacts) != EXPECTED_PUBLISH_ARTIFACTS:
+        raise SystemExit(
+            f"publishing requires the full release matrix of {EXPECTED_PUBLISH_ARTIFACTS}"
+            f" artifacts in dist/, found {len(artifacts)}; run `just build-matrix`"
+        )
 
 
 def check_dist_contents() -> None:
@@ -170,6 +182,7 @@ def main() -> None:
         check_clean_tree()
         check_tag_matches(version)
         check_pypi_available(version)
+        check_artifact_count()
     print(f"release checks passed for {PYPI_PACKAGE} {version}")
 
 

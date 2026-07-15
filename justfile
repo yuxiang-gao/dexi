@@ -38,8 +38,11 @@ examples:
 
 preflight: fmt test build check-dist test-wheel examples
 
+build-matrix:
+    python3 scripts/build_matrix.py
+
 publish:
     python3 scripts/check_release.py --publish --dist
     python3 scripts/publish_pypi.py
 
-release: preflight publish
+release: preflight build-matrix check-dist publish

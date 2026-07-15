@@ -7,7 +7,7 @@ name = "dexi-rs"
 dynamic = ["version"]
 description = "Fast Rust hand retargeting with Python bindings"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 authors = [{ name = "Dexi contributors" }]
 keywords = ["robotics", "retargeting", "hand", "rust", "pyo3"]

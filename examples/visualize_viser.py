@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run
 # /// script
-# requires-python = ">=3.9"
+# requires-python = ">=3.10"
 # dependencies = ["dexi-rs>=0.3.0", "numpy", "pyyaml", "viser", "yourdfpy"]
 # ///
 """Visualize a retargeted URDF hand model with viser.

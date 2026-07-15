@@ -3,22 +3,45 @@
 
 from __future__ import annotations
 
+import platform
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main() -> None:
-    wheels = sorted((ROOT / "dist").glob("dexi_rs-*.whl"))
+def local_wheel() -> Path:
+    """Pick the dist/ wheel matching this interpreter and platform.
+
+    dist/ may hold a single native wheel (after `just build`) or the full
+    release matrix (after `just build-matrix`); either way only the wheel
+    for the running CPython on this machine is installable locally.
+    """
+
+    tag = f"cp{sys.version_info.major}{sys.version_info.minor}"
+    system = {"Darwin": "macosx", "Linux": "manylinux"}.get(platform.system(), "")
+    arch = platform.machine().lower()
+    wheels = [
+        wheel
+        for wheel in sorted((ROOT / "dist").glob("dexi_rs-*.whl"))
+        if f"-{tag}-" in wheel.name and system in wheel.name and arch in wheel.name
+    ]
     if not wheels:
-        raise SystemExit("No dexi-rs wheel found in dist/")
-    wheel = wheels[-1]
+        raise SystemExit(
+            f"No dexi-rs wheel for {tag}/{system}/{arch} in dist/; run `just build`"
+        )
+    return wheels[-1]
+
+
+def main() -> None:
+    wheel = local_wheel()
 
     with tempfile.TemporaryDirectory(prefix="dexi-wheel-") as tmp:
         venv = Path(tmp) / ".venv"
-        subprocess.run(["uv", "venv", str(venv)], cwd=ROOT, check=True)
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+        subprocess.run(["uv", "venv", str(venv), "--python", python_version], cwd=ROOT, check=True)
         python = venv / "bin" / "python"
         subprocess.run(
             ["uv", "pip", "install", "--python", str(python), str(wheel), "numpy", "pyyaml", "viser", "yourdfpy"],
