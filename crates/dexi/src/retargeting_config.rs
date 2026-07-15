@@ -308,6 +308,14 @@ impl RetargetingConfig {
                 }
             }
 
+            if let Ok(cwd) = std::env::current_dir() {
+                let candidate = cwd.join(path);
+                attempted.push(candidate.clone());
+                if candidate.exists() {
+                    return Ok(candidate);
+                }
+            }
+
             let attempted = attempted
                 .iter()
                 .map(|p| p.display().to_string())

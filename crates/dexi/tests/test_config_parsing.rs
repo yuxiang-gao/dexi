@@ -175,3 +175,20 @@ fn test_dexpilot_config_fields() {
     let fingers = config.finger_tip_link_names.unwrap();
     assert_eq!(fingers.len(), 4); // Allegro has 4 fingers
 }
+
+/// Relative URDF paths fall back to the current working directory as a
+/// last resort. cargo test runs with cwd = crates/dexi, so a file relative
+/// to the crate root is only reachable through the cwd fallback
+/// (resolution is existence-based, so any file works as a probe).
+#[test]
+fn test_resolve_urdf_path_cwd_fallback() {
+    let config = RetargetingConfig {
+        urdf_path: "src/constants.rs".to_string(),
+        default_urdf_dir: std::env::temp_dir(),
+        ..Default::default()
+    };
+    let resolved = config
+        .resolve_urdf_path()
+        .expect("cwd fallback should resolve");
+    assert!(resolved.ends_with("src/constants.rs"), "got {resolved:?}");
+}
