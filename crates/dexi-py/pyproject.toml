@@ -35,4 +35,8 @@ include = [
   { path = "THIRD_PARTY_NOTICES.md", format = "sdist" },
   { path = "python/dexi_rs/resources/assets/**/*", format = "wheel" },
   { path = "python/dexi_rs/resources/assets/**/*", format = "sdist" },
+  { path = "python/dexi_rs/_native.pyi", format = "wheel" },
+  { path = "python/dexi_rs/py.typed", format = "wheel" },
+  { path = "python/dexi_rs/_native.pyi", format = "sdist" },
+  { path = "python/dexi_rs/py.typed", format = "sdist" },
 ]
