@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.3.2
 
+- Publish Linux manylinux2014 wheels (x86_64 and aarch64) for CPython 3.9-3.14.
 - Update Fourier vector configs to retarget all five fingertips.
 - Add Fourier/Allegro visualizer presets and per-robot transform conventions.
 - Keep Allegro's four-tip mapping while making Fourier's five-tip convention the default.
