@@ -31,6 +31,7 @@ examples:
     uv pip install --python {{PYTHON}} --force-reinstall dist/*.whl numpy pyyaml viser yourdfpy
     {{PYTHON}} examples/list_configs.py
     {{PYTHON}} examples/quickstart.py
+    {{PYTHON}} examples/python_config.py
     {{PYTHON}} examples/batch_retarget.py
     {{PYTHON}} examples/joint_order.py
     {{PYTHON}} examples/visualize_viser.py --smoke-test

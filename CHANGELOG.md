@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Define `RetargetingConfig` directly from Python keyword arguments or dicts.
+- Accept YAML paths, dicts, and config objects in `dexi_rs.load_config`.
+- Validate config required fields and dimensions on every load path.
+- Resolve relative URDF paths against bundled assets, then the working directory.
+- Ship type stubs (`_native.pyi`, `py.typed`) for IDE and type-checker support.
+
 ## 0.3.2
 
 - Publish Linux manylinux2014 wheels (x86_64 and aarch64) for CPython 3.9-3.14.
