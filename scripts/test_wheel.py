@@ -115,17 +115,52 @@ defaults = dexi_rs.RetargetingConfig(**kwargs)
 assert defaults.normal_delta == 4e-3 and defaults.huber_delta == 2e-2
 assert defaults.project_dist == 0.03 and defaults.escape_dist == 0.05
 assert defaults.has_joint_limits is True and defaults.ignore_mimic_joint is False
-for bad_call, needle in [
-    (lambda: retargeting.retarget(ref[:-1]), 'ref_value'),
-    (lambda: retargeting.retarget(ref, fixed_qpos=[0.0] * (retargeting.fixed_dof + 1)), 'fixed_qpos'),
-    (lambda: retargeting.retarget([float('nan')] * len(ref)), 'finite'),
-    (lambda: retargeting.set_qpos([0.0]), 'robot_qpos'),
-]:
+def expect_value_error(call, message):
     try:
-        bad_call()
-        raise AssertionError(f'expected ValueError mentioning {needle}')
+        call()
     except ValueError as exc:
-        assert needle in str(exc), exc
+        assert str(exc) == message, (str(exc), message)
+    else:
+        raise AssertionError(f'expected ValueError: {message}')
+
+n_dof = len(retargeting.joint_names)
+state_before = retargeting.get_qpos()
+for bad_ref, message in [
+    (ref[:-1], 'ref_value must have 12 values, got 11'),
+    (ref + [0.0], 'ref_value must have 12 values, got 13'),
+    ([], 'ref_value must have 12 values, got 0'),
+    ([float('nan')] * 12, 'ref_value must contain only finite values'),
+    ([float('inf')] * 12, 'ref_value must contain only finite values'),
+    ([float('-inf')] * 12, 'ref_value must contain only finite values'),
+]:
+    expect_value_error(lambda: retargeting.retarget(bad_ref), message)
+expect_value_error(lambda: retargeting.retarget(ref, fixed_qpos=[0.0]),
+                   'fixed_qpos must have 0 values, got 1')
+expect_value_error(lambda: retargeting.set_qpos([0.0]),
+                   f'robot_qpos must have {n_dof} values, got 1')
+expect_value_error(lambda: retargeting.set_qpos([float('nan')] * n_dof),
+                   'robot_qpos must contain only finite values')
+assert retargeting.get_qpos() == state_before, 'failed calls must not change state'
+fresh = lambda: dexi_rs.load_config(config).build()
+assert fresh().retarget(ref, fixed_qpos=None) == fresh().retarget(ref, fixed_qpos=[]), 'None and [] must match'
+retargeting.set_qpos([0.01 * i for i in range(n_dof)])
+assert retargeting.get_qpos() == [0.01 * i for i in range(n_dof)], 'set_qpos must round-trip'
+
+partial = dexi_rs.RetargetingConfig(
+    **kwargs, target_joint_names=[f'joint_{i}.0' for i in range(4, 16)]).build()
+assert partial.fixed_dof == 4, partial.fixed_dof
+fixed = [0.1, -0.2, 0.3, 0.4]
+out = partial.retarget(ref, fixed_qpos=fixed)
+by_name = dict(zip(partial.joint_names, out))
+assert [by_name[f'joint_{i}.0'] for i in range(4)] == fixed, by_name
+assert partial.get_qpos(fixed_qpos=[]) == partial.get_qpos(), 'empty fixed_qpos means zeros'
+for bad_fixed, message in [
+    ([0.0] * 3, 'fixed_qpos must have 4 values, got 3'),
+    ([0.0] * 5, 'fixed_qpos must have 4 values, got 5'),
+    ([0.0, 0.0, float('nan'), 0.0], 'fixed_qpos must contain only finite values'),
+]:
+    expect_value_error(lambda: partial.retarget(ref, fixed_qpos=bad_fixed), message)
+    expect_value_error(lambda: partial.get_qpos(fixed_qpos=bad_fixed), message)
 print('wheel smoke test passed')
 """
         subprocess.run([str(python), "-c", code], cwd=ROOT, check=True)
