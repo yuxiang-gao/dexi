@@ -38,7 +38,15 @@ impl SeqRetargeting {
     }
 
     /// Perform retargeting with a reference value.
-    pub fn retarget(&mut self, ref_value: &[f64], fixed_qpos: &[f64]) -> Vec<f64> {
+    ///
+    /// `ref_value` is the flat reference (3 values per target point/vector).
+    /// `fixed_qpos` holds the non-optimized joints; pass an empty slice to
+    /// hold them at zero.
+    pub fn retarget(&mut self, ref_value: &[f64], fixed_qpos: &[f64]) -> Result<Vec<f64>, String> {
+        check_len("ref_value", ref_value.len(), self.optimizer.ref_value_len())?;
+        check_finite("ref_value", ref_value)?;
+        self.check_fixed_qpos(fixed_qpos)?;
+
         // Clip last_qpos to limits
         let clipped: Vec<f64> = self
             .last_qpos
@@ -52,13 +60,10 @@ impl SeqRetargeting {
         self.last_qpos = qpos.clone();
 
         // Reconstruct full robot qpos
-        let total_dof = self.optimizer.dof_joint_names().len();
-        let mut robot_qpos = vec![0.0; total_dof];
+        let mut robot_qpos = vec![0.0; self.total_dof()];
 
-        for (i, &fi) in self.optimizer.idx_pin2fixed().iter().enumerate() {
-            if i < fixed_qpos.len() {
-                robot_qpos[fi] = fixed_qpos[i];
-            }
+        for (&fi, &q) in self.optimizer.idx_pin2fixed().iter().zip(fixed_qpos) {
+            robot_qpos[fi] = q;
         }
         for (i, &ti) in self.optimizer.idx_pin2target().iter().enumerate() {
             robot_qpos[ti] = qpos[i];
@@ -67,11 +72,10 @@ impl SeqRetargeting {
         self.optimizer.apply_adaptor_forward(&mut robot_qpos);
 
         // Apply filter
-        if let Some(ref mut filter) = self.filter {
-            filter.next(&robot_qpos)
-        } else {
-            robot_qpos
-        }
+        Ok(match self.filter {
+            Some(ref mut filter) => filter.next(&robot_qpos),
+            None => robot_qpos,
+        })
     }
 
     /// Reset state
@@ -84,31 +88,65 @@ impl SeqRetargeting {
         self.num_retargeting = 0;
     }
 
-    /// Set qpos directly
-    pub fn set_qpos(&mut self, robot_qpos: &[f64]) {
+    /// Set qpos directly from a full robot qpos (one value per DOF joint).
+    pub fn set_qpos(&mut self, robot_qpos: &[f64]) -> Result<(), String> {
+        check_len("robot_qpos", robot_qpos.len(), self.total_dof())?;
         for (i, &ti) in self.optimizer.idx_pin2target().iter().enumerate() {
-            if ti < robot_qpos.len() {
-                self.last_qpos[i] = robot_qpos[ti];
-            }
+            self.last_qpos[i] = robot_qpos[ti];
         }
+        Ok(())
     }
 
     /// Get current qpos
-    pub fn get_qpos(&self, fixed_qpos: Option<&[f64]>) -> Vec<f64> {
-        let total_dof = self.optimizer.dof_joint_names().len();
-        let mut robot_qpos = vec![0.0; total_dof];
+    pub fn get_qpos(&self, fixed_qpos: Option<&[f64]>) -> Result<Vec<f64>, String> {
+        let mut robot_qpos = vec![0.0; self.total_dof()];
 
         for (i, &ti) in self.optimizer.idx_pin2target().iter().enumerate() {
             robot_qpos[ti] = self.last_qpos[i];
         }
         if let Some(fp) = fixed_qpos {
-            for (i, &fi) in self.optimizer.idx_pin2fixed().iter().enumerate() {
-                if i < fp.len() {
-                    robot_qpos[fi] = fp[i];
-                }
+            self.check_fixed_qpos(fp)?;
+            for (&fi, &q) in self.optimizer.idx_pin2fixed().iter().zip(fp) {
+                robot_qpos[fi] = q;
             }
         }
         self.optimizer.apply_adaptor_forward(&mut robot_qpos);
-        robot_qpos
+        Ok(robot_qpos)
+    }
+
+    /// An empty `fixed_qpos` means "hold fixed joints at zero"; otherwise it
+    /// must supply one finite value per fixed joint.
+    fn check_fixed_qpos(&self, fixed_qpos: &[f64]) -> Result<(), String> {
+        if fixed_qpos.is_empty() {
+            return Ok(());
+        }
+        check_len("fixed_qpos", fixed_qpos.len(), self.fixed_dof())?;
+        check_finite("fixed_qpos", fixed_qpos)
+    }
+
+    /// Number of joints in a full robot qpos.
+    fn total_dof(&self) -> usize {
+        self.optimizer.dof_joint_names().len()
+    }
+
+    /// Number of non-optimized, non-mimic joints supplied via `fixed_qpos`.
+    fn fixed_dof(&self) -> usize {
+        self.optimizer.idx_pin2fixed().len()
+    }
+}
+
+fn check_finite(name: &str, values: &[f64]) -> Result<(), String> {
+    if values.iter().all(|v| v.is_finite()) {
+        Ok(())
+    } else {
+        Err(format!("{name} must contain only finite values"))
+    }
+}
+
+fn check_len(name: &str, got: usize, expected: usize) -> Result<(), String> {
+    if got == expected {
+        Ok(())
+    } else {
+        Err(format!("{name} must have {expected} values, got {got}"))
     }
 }

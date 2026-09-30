@@ -14,6 +14,9 @@ pub trait Optimizer: Send {
     /// Get the number of optimization DOF (target joints)
     fn opt_dof(&self) -> usize;
 
+    /// Expected length of the flat `ref_value` passed to `retarget`.
+    fn ref_value_len(&self) -> usize;
+
     /// Get target joint indices in the robot DOF
     fn idx_pin2target(&self) -> &[usize];
 
@@ -347,6 +350,9 @@ impl Optimizer for PositionOptimizer {
         })
     }
 
+    fn ref_value_len(&self) -> usize {
+        3 * self.target_link_indices.len()
+    }
     fn opt_dof(&self) -> usize {
         self.data.opt_dof
     }
@@ -588,6 +594,9 @@ impl Optimizer for VectorOptimizer {
         })
     }
 
+    fn ref_value_len(&self) -> usize {
+        3 * self.origin_link_indices.len()
+    }
     fn opt_dof(&self) -> usize {
         self.data.opt_dof
     }
@@ -985,6 +994,9 @@ impl Optimizer for DexPilotOptimizer {
         })
     }
 
+    fn ref_value_len(&self) -> usize {
+        3 * self.origin_link_indices.len()
+    }
     fn opt_dof(&self) -> usize {
         self.data.opt_dof
     }

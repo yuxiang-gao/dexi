@@ -124,7 +124,7 @@ fn test_position_retargeting_allegro() {
     }
 
     // Run retargeting
-    let result = retargeting.retarget(&ref_value, &[]);
+    let result = retargeting.retarget(&ref_value, &[]).unwrap();
     assert!(
         !result.is_empty(),
         "Retargeting should return non-empty result"
@@ -165,7 +165,7 @@ fn test_vector_retargeting_allegro() {
         ref_value.push(pose[(2, 3)] - wrist_pos[2]);
     }
 
-    let result = retargeting.retarget(&ref_value, &[]);
+    let result = retargeting.retarget(&ref_value, &[]).unwrap();
     assert!(!result.is_empty());
 }
 
@@ -221,7 +221,7 @@ fn test_dexpilot_retargeting_allegro() {
         ref_value.push(all_positions[ti][2] - all_positions[oi][2]);
     }
 
-    let result = retargeting.retarget(&ref_value, &[]);
+    let result = retargeting.retarget(&ref_value, &[]).unwrap();
     assert!(!result.is_empty());
 }
 
@@ -254,7 +254,7 @@ fn test_position_retargeting_inspire() {
         ref_value.push(pose[(2, 3)]);
     }
 
-    let result = retargeting.retarget(&ref_value, &[]);
+    let result = retargeting.retarget(&ref_value, &[]).unwrap();
     assert!(!result.is_empty());
 }
 
@@ -292,7 +292,7 @@ fn test_position_retargeting_leap() {
     }
 
     if !ref_value.is_empty() {
-        let result = retargeting.retarget(&ref_value, &[]);
+        let result = retargeting.retarget(&ref_value, &[]).unwrap();
         assert!(!result.is_empty());
     }
 }
@@ -322,7 +322,7 @@ fn test_position_retargeting_panda() {
     }
 
     if !ref_value.is_empty() {
-        let result = retargeting.retarget(&ref_value, &[]);
+        let result = retargeting.retarget(&ref_value, &[]).unwrap();
         assert!(!result.is_empty());
     }
 }

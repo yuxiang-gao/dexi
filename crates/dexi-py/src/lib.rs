@@ -266,7 +266,9 @@ impl PySeqRetargeting {
             .inner
             .lock()
             .map_err(|_| PyRuntimeError::new_err("SeqRetargeting lock poisoned"))?;
-        Ok(guard.retarget(&ref_value, fixed_qpos.as_deref().unwrap_or(&[])))
+        guard
+            .retarget(&ref_value, fixed_qpos.as_deref().unwrap_or(&[]))
+            .map_err(value_error)
     }
 
     fn reset(&self) -> PyResult<()> {
@@ -283,8 +285,7 @@ impl PySeqRetargeting {
             .inner
             .lock()
             .map_err(|_| PyRuntimeError::new_err("SeqRetargeting lock poisoned"))?;
-        guard.set_qpos(&robot_qpos);
-        Ok(())
+        guard.set_qpos(&robot_qpos).map_err(value_error)
     }
 
     #[pyo3(signature = (fixed_qpos=None))]
@@ -293,7 +294,7 @@ impl PySeqRetargeting {
             .inner
             .lock()
             .map_err(|_| PyRuntimeError::new_err("SeqRetargeting lock poisoned"))?;
-        Ok(guard.get_qpos(fixed_qpos.as_deref()))
+        guard.get_qpos(fixed_qpos.as_deref()).map_err(value_error)
     }
 
     #[getter]

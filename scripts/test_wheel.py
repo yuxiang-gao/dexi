@@ -115,6 +115,17 @@ defaults = dexi_rs.RetargetingConfig(**kwargs)
 assert defaults.normal_delta == 4e-3 and defaults.huber_delta == 2e-2
 assert defaults.project_dist == 0.03 and defaults.escape_dist == 0.05
 assert defaults.has_joint_limits is True and defaults.ignore_mimic_joint is False
+for bad_call, needle in [
+    (lambda: retargeting.retarget(ref[:-1]), 'ref_value'),
+    (lambda: retargeting.retarget(ref, fixed_qpos=[0.0] * (retargeting.fixed_dof + 1)), 'fixed_qpos'),
+    (lambda: retargeting.retarget([float('nan')] * len(ref)), 'finite'),
+    (lambda: retargeting.set_qpos([0.0]), 'robot_qpos'),
+]:
+    try:
+        bad_call()
+        raise AssertionError(f'expected ValueError mentioning {needle}')
+    except ValueError as exc:
+        assert needle in str(exc), exc
 print('wheel smoke test passed')
 """
         subprocess.run([str(python), "-c", code], cwd=ROOT, check=True)
