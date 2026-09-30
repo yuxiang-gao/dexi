@@ -9,6 +9,9 @@ setup:
 fmt:
     cargo fmt --check
 
+lint:
+    cargo clippy --workspace --all-targets -- -D warnings
+
 test:
     cargo test
     python3 -m py_compile scripts/*.py examples/*.py
@@ -36,7 +39,7 @@ examples:
     {{PYTHON}} examples/joint_order.py
     {{PYTHON}} examples/visualize_viser.py --smoke-test
 
-preflight: fmt test build check-dist test-wheel examples
+preflight: fmt lint test build check-dist test-wheel examples
 
 build-matrix:
     python3 scripts/build_matrix.py

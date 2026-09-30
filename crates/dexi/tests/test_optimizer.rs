@@ -116,7 +116,7 @@ fn test_position_retargeting_allegro() {
     for name in &target_link_names {
         let idx = robot_full
             .get_link_index(name)
-            .expect(&format!("Link {} not found", name));
+            .unwrap_or_else(|| panic!("Link {} not found", name));
         let pose = robot_full.get_link_pose(idx);
         ref_value.push(pose[(0, 3)]);
         ref_value.push(pose[(1, 3)]);

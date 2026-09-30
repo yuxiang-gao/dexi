@@ -40,8 +40,10 @@ pub enum RetargetingType {
     DexPilot,
 }
 
-impl RetargetingType {
-    pub fn from_str(s: &str) -> Result<Self, String> {
+impl std::str::FromStr for RetargetingType {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, String> {
         match s.to_lowercase().as_str() {
             "vector" => Ok(Self::Vector),
             "position" => Ok(Self::Position),

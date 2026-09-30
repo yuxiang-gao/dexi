@@ -1,6 +1,7 @@
 //! Python bindings for dexi via PyO3.
 
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::sync::Mutex;
 
 use dexi::{RetargetingConfig, RetargetingType, SeqRetargeting};

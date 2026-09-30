@@ -140,11 +140,11 @@ impl UrdfRobot {
     pub fn from_file(path: &Path) -> Result<Self, String> {
         let content =
             std::fs::read_to_string(path).map_err(|e| format!("Failed to read URDF: {}", e))?;
-        Self::from_str(&content)
+        Self::from_xml(&content)
     }
 
     /// Parse a URDF from string
-    pub fn from_str(xml: &str) -> Result<Self, String> {
+    pub fn from_xml(xml: &str) -> Result<Self, String> {
         let doc = roxmltree::Document::parse(xml).map_err(|e| format!("XML parse error: {}", e))?;
         let root = doc.root();
         let robot_node = root

@@ -6,6 +6,8 @@
 - Validate that dexpilot configs declare 2-5 fingertip links.
 - Raise `ValueError` from `retarget`, `set_qpos`, and `get_qpos` on wrong-length or non-finite inputs instead of crashing (`PanicException`) or silently zero-padding. `fixed_qpos` may still be omitted to hold fixed joints at zero.
 - Rust API: `SeqRetargeting::{retarget, set_qpos, get_qpos}` now return `Result`.
+- Rust API: `UrdfRobot::from_str` is renamed `from_xml`; `RetargetingType` implements `FromStr`.
+- Add `just lint` (clippy with `-D warnings`) to `just preflight`.
 
 ## 0.4.0
 
