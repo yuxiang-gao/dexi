@@ -4,6 +4,8 @@
 
 - Return `RuntimeError` instead of crashing (`PanicException`) when `build()` meets unknown link or joint names.
 - Validate that dexpilot configs declare 2-5 fingertip links.
+- Raise `ValueError` from `retarget`, `set_qpos`, and `get_qpos` on wrong-length or non-finite inputs instead of crashing (`PanicException`) or silently zero-padding. `fixed_qpos` may still be omitted to hold fixed joints at zero.
+- Rust API: `SeqRetargeting::{retarget, set_qpos, get_qpos}` now return `Result`.
 
 ## 0.4.0
 
