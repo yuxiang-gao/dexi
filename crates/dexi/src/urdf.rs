@@ -1,7 +1,6 @@
 //! URDF parsing with roxmltree.
 
 use nalgebra::{Matrix3, Matrix4, Vector3};
-use std::collections::HashMap;
 use std::path::Path;
 
 /// Mimic joint specification
@@ -46,8 +45,6 @@ pub struct UrdfRobot {
     pub name: String,
     pub links: Vec<LinkSpec>,
     pub joints: Vec<JointSpec>,
-    pub link_map: HashMap<String, usize>,
-    pub joint_map: HashMap<String, usize>,
 }
 
 fn parse_xyz(s: &str) -> Vector3<f64> {
@@ -253,21 +250,10 @@ impl UrdfRobot {
             }
         }
 
-        let mut link_map = HashMap::new();
-        for (i, link) in links.iter().enumerate() {
-            link_map.insert(link.name.clone(), i);
-        }
-        let mut joint_map = HashMap::new();
-        for (i, joint) in joints.iter().enumerate() {
-            joint_map.insert(joint.name.clone(), i);
-        }
-
         Ok(Self {
             name: robot_name,
             links,
             joints,
-            link_map,
-            joint_map,
         })
     }
 
@@ -282,16 +268,6 @@ impl UrdfRobot {
             .map(|l| l.name.as_str())
     }
 
-    /// Get list of all link names
-    pub fn link_names(&self) -> Vec<String> {
-        self.links.iter().map(|l| l.name.clone()).collect()
-    }
-
-    /// Get list of all joint names
-    pub fn joint_names(&self) -> Vec<String> {
-        self.joints.iter().map(|j| j.name.clone()).collect()
-    }
-
     /// Get DOF joint names (non-fixed, non-mimic joints)
     pub fn dof_joint_names(&self) -> Vec<String> {
         self.joints
@@ -299,23 +275,6 @@ impl UrdfRobot {
             .filter(|j| j.joint_type != "fixed" && j.mimic.is_none())
             .map(|j| j.name.clone())
             .collect()
-    }
-
-    /// Get all non-fixed joint names (includes mimic)
-    pub fn all_dof_joint_names(&self) -> Vec<String> {
-        self.joints
-            .iter()
-            .filter(|j| j.joint_type != "fixed")
-            .map(|j| j.name.clone())
-            .collect()
-    }
-
-    /// Get number of DOF (non-fixed, non-mimic joints)
-    pub fn dof(&self) -> usize {
-        self.joints
-            .iter()
-            .filter(|j| j.joint_type != "fixed" && j.mimic.is_none())
-            .count()
     }
 
     /// Parse all mimic joints, returning (source_names, mimic_names, multipliers, offsets)

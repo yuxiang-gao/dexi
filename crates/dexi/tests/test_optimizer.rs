@@ -423,19 +423,39 @@ fn test_jacobian_computation() {
     let qpos = vec![0.0; ndof];
     let tip_idx = robot.get_link_index("link_3.0_tip").unwrap();
 
-    let jac = robot.compute_single_link_local_jacobian(&qpos, tip_idx);
-    assert_eq!(jac.nrows(), 6);
-    assert_eq!(jac.ncols(), ndof);
+    let numeric = finite_difference_position_jacobian(&mut robot, &qpos, tip_idx);
 
-    // Position part should not be all zeros for a reachable link
-    let pos_jac = jac.rows(0, 3);
-    let norm = pos_jac.iter().map(|x| x.powi(2)).sum::<f64>().sqrt();
+    // Position Jacobian should not be all zeros for a reachable link
+    let norm = numeric.iter().map(|x| x.powi(2)).sum::<f64>().sqrt();
     assert!(norm > 1e-6, "Jacobian should not be all zeros");
 
     let analytic = robot.compute_single_link_position_jacobian(&qpos, tip_idx);
     assert_eq!(analytic.nrows(), 3);
     assert_eq!(analytic.ncols(), ndof);
-    assert_matrix_close(&analytic, &jac.rows(0, 3).into_owned(), 1e-5);
+    assert_matrix_close(&analytic, &numeric, 1e-5);
+}
+
+/// Forward-difference world-frame position Jacobian, used as the reference
+/// for the analytic implementation.
+fn finite_difference_position_jacobian(
+    robot: &mut RobotWrapper,
+    qpos: &[f64],
+    link_id: usize,
+) -> DMatrix<f64> {
+    let eps = 1e-7;
+    robot.compute_forward_kinematics(qpos);
+    let ref_pose = robot.get_link_pose(link_id);
+    let mut jac = DMatrix::zeros(3, qpos.len());
+    for col in 0..qpos.len() {
+        let mut perturbed = qpos.to_vec();
+        perturbed[col] += eps;
+        robot.compute_forward_kinematics(&perturbed);
+        let pose = robot.get_link_pose(link_id);
+        for row in 0..3 {
+            jac[(row, col)] = (pose[(row, 3)] - ref_pose[(row, 3)]) / eps;
+        }
+    }
+    jac
 }
 
 fn assert_matrix_close(left: &DMatrix<f64>, right: &DMatrix<f64>, tolerance: f64) {

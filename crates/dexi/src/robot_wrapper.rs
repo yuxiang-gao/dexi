@@ -113,15 +113,6 @@ impl RobotWrapper {
         self.dof_joints.iter().map(|j| j.name.clone()).collect()
     }
 
-    /// Non-mimic DOF joint names (active joints only)
-    pub fn active_joint_names(&self) -> Vec<String> {
-        self.dof_joints
-            .iter()
-            .filter(|j| j.mimic.is_none())
-            .map(|j| j.name.clone())
-            .collect()
-    }
-
     /// All link names
     pub fn link_names(&self) -> Vec<String> {
         self.urdf.links.iter().map(|l| l.name.clone()).collect()
@@ -140,15 +131,6 @@ impl RobotWrapper {
     /// Joint limits as (lower, upper) pairs for all DOF joints
     pub fn joint_limits_array(&self) -> Vec<(f64, f64)> {
         self.joint_limits.clone()
-    }
-
-    /// Get the joint's parent and child link names
-    pub fn get_joint_parent_child(&self, joint_name: &str) -> Option<(String, String)> {
-        self.urdf
-            .joints
-            .iter()
-            .find(|j| j.name == joint_name)
-            .map(|j| (j.parent_link.clone(), j.child_link.clone()))
     }
 
     /// Compute forward kinematics for all links given qpos (all DOF joints).
@@ -221,43 +203,6 @@ impl RobotWrapper {
         self.link_poses[link_id]
     }
 
-    /// Compute the full (6 x ndof) body Jacobian for a single link via finite differences.
-    pub fn compute_single_link_local_jacobian(
-        &mut self,
-        qpos: &[f64],
-        link_id: usize,
-    ) -> DMatrix<f64> {
-        let eps = 1e-7;
-        let ndof = self.dof();
-        let mut jac = DMatrix::zeros(6, ndof);
-
-        self.compute_forward_kinematics(qpos);
-        let ref_pose = self.link_poses[link_id];
-
-        for i in 0..ndof {
-            let mut qpos_pert = qpos.to_vec();
-            qpos_pert[i] += eps;
-            self.compute_forward_kinematics(&qpos_pert);
-            let pert_pose = self.link_poses[link_id];
-
-            // Numerical derivative of position part
-            for row in 0..3 {
-                jac[(row, i)] = (pert_pose[(row, 3)] - ref_pose[(row, 3)]) / eps;
-            }
-
-            // Numerical derivative of orientation part
-            let d_r =
-                pert_pose.fixed_view::<3, 3>(0, 0) * ref_pose.fixed_view::<3, 3>(0, 0).transpose();
-            jac[(3, i)] = (d_r[(2, 1)] - d_r[(1, 2)]) / (2.0 * eps);
-            jac[(4, i)] = (d_r[(0, 2)] - d_r[(2, 0)]) / (2.0 * eps);
-            jac[(5, i)] = (d_r[(1, 0)] - d_r[(0, 1)]) / (2.0 * eps);
-        }
-
-        // Restore original FK
-        self.compute_forward_kinematics(qpos);
-        jac
-    }
-
     /// Compute the world-frame translational Jacobian for a link origin.
     ///
     /// The Python implementation converts Pinocchio's local frame Jacobian into
@@ -319,11 +264,6 @@ impl RobotWrapper {
             current = joint.parent_link.clone();
         }
         ancestors
-    }
-
-    /// Neutral configuration (all zeros)
-    pub fn q0(&self) -> Vec<f64> {
-        vec![0.0; self.dof()]
     }
 }
 

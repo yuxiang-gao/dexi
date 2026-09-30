@@ -685,14 +685,4 @@ pub fn add_dummy_free_joints(urdf: &mut UrdfRobot) {
         .into_iter()
         .chain(urdf.joints.drain(..))
         .collect();
-
-    // Rebuild maps
-    urdf.link_map.clear();
-    for (i, link) in urdf.links.iter().enumerate() {
-        urdf.link_map.insert(link.name.clone(), i);
-    }
-    urdf.joint_map.clear();
-    for (i, joint) in urdf.joints.iter().enumerate() {
-        urdf.joint_map.insert(joint.name.clone(), i);
-    }
 }
