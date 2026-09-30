@@ -91,6 +91,7 @@ impl SeqRetargeting {
     /// Set qpos directly from a full robot qpos (one value per DOF joint).
     pub fn set_qpos(&mut self, robot_qpos: &[f64]) -> Result<(), String> {
         check_len("robot_qpos", robot_qpos.len(), self.total_dof())?;
+        check_finite("robot_qpos", robot_qpos)?;
         for (i, &ti) in self.optimizer.idx_pin2target().iter().enumerate() {
             self.last_qpos[i] = robot_qpos[ti];
         }
