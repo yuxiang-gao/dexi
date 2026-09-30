@@ -205,6 +205,12 @@ impl OptimizerData {
         }
     }
 
+    fn clip_to_limits(&self, x: &mut [f64]) {
+        for ((xi, &lo), &hi) in x.iter_mut().zip(&self.joint_lower).zip(&self.joint_upper) {
+            *xi = xi.max(lo).min(hi);
+        }
+    }
+
     pub fn link_positions(
         &mut self,
         qpos: &[f64],
@@ -291,11 +297,7 @@ impl Optimizer for PositionOptimizer {
         };
 
         // Clip to limits
-        for i in 0..opt_dof {
-            x[i] = x[i]
-                .max(self.data.joint_lower[i])
-                .min(self.data.joint_upper[i]);
-        }
+        self.data.clip_to_limits(&mut x);
 
         let idx_fixed = self.data.idx_pin2fixed.clone();
         let idx_target = self.data.idx_pin2target.clone();
@@ -420,6 +422,7 @@ pub struct VectorOptimizer {
 }
 
 impl VectorOptimizer {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         robot: RobotWrapper,
         target_joint_names: &[String],
@@ -494,11 +497,7 @@ impl Optimizer for VectorOptimizer {
         } else {
             vec![0.0; opt_dof]
         };
-        for i in 0..opt_dof {
-            x[i] = x[i]
-                .max(self.data.joint_lower[i])
-                .min(self.data.joint_upper[i]);
-        }
+        self.data.clip_to_limits(&mut x);
 
         let idx_fixed = self.data.idx_pin2fixed.clone();
         let idx_target = self.data.idx_pin2target.clone();
@@ -673,6 +672,7 @@ pub struct DexPilotOptimizer {
 }
 
 impl DexPilotOptimizer {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         robot: RobotWrapper,
         target_joint_names: &[String],
@@ -689,7 +689,7 @@ impl DexPilotOptimizer {
     ) -> Self {
         let num_fingers = finger_tip_link_names.len();
         assert!(
-            num_fingers >= 2 && num_fingers <= 5,
+            (2..=5).contains(&num_fingers),
             "DexPilot requires 2-5 fingers"
         );
 
@@ -813,12 +813,12 @@ impl Optimizer for DexPilotOptimizer {
             .iter()
             .map(|v| (v[0].powi(2) + v[1].powi(2) + v[2].powi(2)).sqrt())
             .collect();
-        for i in 0..len_s1 {
-            if target_vec_dist[i] < self.project_dist {
-                self.projected[i] = true;
+        for (projected, &dist) in self.projected[..len_s1].iter_mut().zip(&target_vec_dist) {
+            if dist < self.project_dist {
+                *projected = true;
             }
-            if target_vec_dist[i] > self.escape_dist {
-                self.projected[i] = false;
+            if dist > self.escape_dist {
+                *projected = false;
             }
         }
         for i in 0..len_s2 {
@@ -894,11 +894,7 @@ impl Optimizer for DexPilotOptimizer {
         } else {
             vec![0.0; opt_dof]
         };
-        for i in 0..opt_dof {
-            x[i] = x[i]
-                .max(self.data.joint_lower[i])
-                .min(self.data.joint_upper[i]);
-        }
+        self.data.clip_to_limits(&mut x);
 
         let idx_fixed = self.data.idx_pin2fixed.clone();
         let idx_target = self.data.idx_pin2target.clone();

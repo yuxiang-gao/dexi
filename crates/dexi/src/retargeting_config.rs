@@ -9,6 +9,7 @@ use crate::seq_retarget::SeqRetargeting;
 use crate::urdf::{JointSpec, LimitSpec, LinkSpec, UrdfRobot};
 use nalgebra::{Matrix4, Vector3};
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 /// Retargeting configuration
 #[derive(Debug, Clone)]
@@ -181,18 +182,15 @@ impl RetargetingConfig {
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
 
-        let target_link_human_indices = cfg
-            .get("target_link_human_indices")
-            .and_then(|v| parse_indices(v));
+        let target_link_human_indices =
+            cfg.get("target_link_human_indices").and_then(parse_indices);
 
         let wrist_link_name = cfg
             .get("wrist_link_name")
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
 
-        let target_link_names = cfg
-            .get("target_link_names")
-            .and_then(|v| parse_string_list(v));
+        let target_link_names = cfg.get("target_link_names").and_then(parse_string_list);
 
         // target_joint_names can be null, which means "all dof joints"
         let target_joint_names = cfg.get("target_joint_names").and_then(|v| {
@@ -205,15 +203,13 @@ impl RetargetingConfig {
 
         let target_origin_link_names = cfg
             .get("target_origin_link_names")
-            .and_then(|v| parse_string_list(v));
+            .and_then(parse_string_list);
 
         let target_task_link_names = cfg
             .get("target_task_link_names")
-            .and_then(|v| parse_string_list(v));
+            .and_then(parse_string_list);
 
-        let finger_tip_link_names = cfg
-            .get("finger_tip_link_names")
-            .and_then(|v| parse_string_list(v));
+        let finger_tip_link_names = cfg.get("finger_tip_link_names").and_then(parse_string_list);
 
         let scaling_factor = cfg
             .get("scaling_factor")
@@ -678,7 +674,7 @@ pub fn add_dummy_free_joints(urdf: &mut UrdfRobot) {
                 lower: joint_limits_vals[i].0,
                 upper: joint_limits_vals[i].1,
                 effort: Some(10.0),
-                velocity: Some(3.14),
+                velocity: Some(std::f64::consts::PI),
             }),
             mimic: None,
         });

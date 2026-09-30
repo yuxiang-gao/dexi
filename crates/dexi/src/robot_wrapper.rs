@@ -211,7 +211,7 @@ impl RobotWrapper {
                 m.fixed_view_mut::<3, 3>(0, 0).copy_from(&rot);
                 m
             }
-            "prismatic" => transform_from_translation(&(&joint.axis * q)),
+            "prismatic" => transform_from_translation(&(joint.axis * q)),
             _ => Matrix4::identity(), // fixed
         }
     }
