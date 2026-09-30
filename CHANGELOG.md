@@ -8,6 +8,7 @@
 - Rust API: `SeqRetargeting::{retarget, set_qpos, get_qpos}` now return `Result`.
 - Rust API: `UrdfRobot::from_str` is renamed `from_xml`; `RetargetingType` implements `FromStr`.
 - Add `just lint` (clippy with `-D warnings`) to `just preflight`.
+- Remove unused Rust APIs (`UrdfRobot::{link_map, joint_map, link_names, joint_names, dof, all_dof_joint_names}`, `RobotWrapper::{active_joint_names, get_joint_parent_child, q0, compute_single_link_local_jacobian}`) and the unused `rand`/`thiserror` dependencies.
 
 ## 0.4.0
 

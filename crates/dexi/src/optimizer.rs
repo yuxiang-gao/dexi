@@ -47,7 +47,6 @@ pub trait Optimizer: Send {
 }
 
 /// Huber loss (SmoothL1)
-#[allow(dead_code)]
 fn huber_loss(x: f64, beta: f64) -> f64 {
     if x.abs() <= beta {
         0.5 * x * x / beta

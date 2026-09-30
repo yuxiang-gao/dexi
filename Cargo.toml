@@ -10,7 +10,5 @@ nalgebra = "0.33"
 roxmltree = "0.20"
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
-thiserror = "2"
-rand = "0.8"
 approx = "0.5"
 slsqp = "1.0"

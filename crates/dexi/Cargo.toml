@@ -13,8 +13,6 @@ nalgebra = { workspace = true }
 roxmltree = { workspace = true }
 serde = { workspace = true }
 serde_yaml = { workspace = true }
-thiserror = { workspace = true }
-rand = { workspace = true }
 slsqp = { workspace = true }
 
 [dev-dependencies]
