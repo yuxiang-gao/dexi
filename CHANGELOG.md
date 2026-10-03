@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.1
 
 - Return `RuntimeError` instead of crashing (`PanicException`) when `build()` meets unknown link or joint names.
 - Validate that dexpilot configs declare 2-5 fingertip links.

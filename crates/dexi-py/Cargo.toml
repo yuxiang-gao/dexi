@@ -1,6 +1,6 @@
 [package]
 name = "dexi-rs"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 description = "Python bindings for dexi via PyO3"
 license = "MIT"
