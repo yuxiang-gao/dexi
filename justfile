@@ -48,4 +48,8 @@ publish:
     python3 scripts/check_release.py --publish --dist
     python3 scripts/publish_pypi.py
 
-release: preflight build-matrix check-dist publish
+# check-dist already ran in preflight, and just runs each dependency once per
+# invocation, so re-check the full matrix in a fresh just process.
+release: preflight build-matrix
+    {{just_executable()}} check-dist
+    {{just_executable()}} publish
